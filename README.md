@@ -1,2 +1,2 @@
 # VR-GeoCal
-VR Geomodels for CA
+Experimental space for VR Geomodels for CA
