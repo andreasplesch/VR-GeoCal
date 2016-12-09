@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta charset="utf-8">
+    <title>CVM-H in a web page</title>
+    <link rel="stylesheet" type="text/css" href="x3dom.css">
+    <script type="text/javascript" src="x3dom-full.debug.js"></script>
+    <script type="text/javascript" src="https://gist.github.com/andreasplesch/644d7e9f54154b5fa7f1/raw/7671901c99d19da7495d588ece415dd839e7ff90/VRfixText.user.js"></script>
+    <script type="text/javascript" src="https://gist.githubusercontent.com/andreasplesch/82fb409cd1338bbf9be9/raw/ec13f552904be8dc8823ee0c6473f2c454c1e45c/RadarVolumeStyleAllowInside.user.js"></script>
+    
+    <style>
+      #x3dscene {
+        background-color: black;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        height:  800px;
+      }
+      #hud {
+        _transform-style: preserve-3d;
+        _transform: translateX(100px) translateY(100px) translateZ (-50px);
+        _perspective: 600px;
+        position: absolute;
+        _left: 0px;
+        padding: 10px; 
+        background: grey; 
+        opacity: 0.8; 
+        font-family: arial; 
+        font-size: 12px; 
+        margin-left: 8px
+      }
+      #hudd > * {
+        transform-style: preserve-3d;
+        _transform: translate3d(100px, 100px, 100px);
+      }
+       #enterVR {
+        background: rgba(0, 0, 0, .35) url("icon-goggles-white.svg") 50% 50% no-repeat;
+        background-size: 70% 70%;
+        color: #fff;
+        height: 50px;
+        width: 60px;
+        border: none;
+        background-color: rgba(120, 120, 120, .35);
+        padding: 1px 6px;
+        position:absolute;
+        bottom:10px; 
+        right:10px;
+        cursor: pointer;    
+    }
+    
+    #enterVR:hover {
+        background-color: rgba(120, 120, 120, .65);
+    }
+    
+    .goggles {
+        height: 30px;
+        text-align: center;
+        color: buttontext;
+    }
+    </style>
+</head>
+<body>
+  <h3>CVM H</h3>
+  
+<p>Use controls below to slice and adjust colors. Click on goggles (rectangle) to switch to VR. Press z to reset view in VR. Use PgUp/PgDn to switch viewpoints. Use mouse to fly.</p>
+<div id="frame">
+<x3d id="x3dscene">
+    <param name="showLog" value="true"></param>
+    <param name="showStat" value="true"></param>
+    <Scene id='scene'>
+        <!-- disable culling, otherwise the texture planes disappear -->
+        <Environment frustumCulling="false" smallFeatureThreshold='0' ></Environment>
+        <Viewpoint DEF='vp1' id='vp1' position="-2472845.25963 -4728637.26520 3487136.78333" orientation="0.94636 -0.12419 0.29829 2.35196" zNear="139.91409" zFar="1399140.91219" centerofRotation="-2486382.4567696294 -4703305.987062169 3506174.1505457587" description="vp1"></Viewpoint>
+        <Viewpoint DEF='vp2' id='vp2' position="-2463109.09736 -4666010.71356 3569388.92905" orientation="0.35547 0.21427 0.90979 2.53885" 
+    zNear="139.91409" zFar="1399140.91219" centerofRotation="-2485280.716014316 -4664317.061311953 3538022.202066815" description="vp2"></Viewpoint>
+        <NavigationInfo type=' "FLY" ' speed='6000'></NavigationInfo>
+        <background DEF='bgnd' skyColor="0 0 0"></background>
+        <group id='root' render='false'>
+            <group DEF='theScene'>
+              <inline url="cal_outline.x3d"></inline>
+              <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
+              <GeoLocation geoCoords='371052.25 3774000 400' geoSystem='"UTM" "Z11" "N" "CC" "easting_first"'>
+                
+                <Billboard>
+                  <Screengroup>
+                    <Transform id='scalebar' translation='20 20 0'>
+                      <Transform translation='-100 15 0' scale='10 10 1'>
+                        <Shape bboxSize='10 10 10'>
+                          <Appearance DEF="textapp">
+                            <Material ambientIntensity='0.0933' diffuseColor='0.32 0.54 0.26' shininess='0.51' specularColor='0.46 0.46 0.46'></Material>
+                          </Appearance>
+                          <Text id='minbartext' string="800" solid='false'>
+                              <Fontstyle DEF="scaletext" family="'SANS'" style="BOLD" size="4" justify="middle" quality='2'></Fontstyle>
+                          </Text>
+                        </Shape>
+                      </Transform>
+                      
+                      <Transform translation='0 20 0' scale='10 10 1'>
+                      <Shape bboxSize='10 10 10'>
+                        <Appearance USE="textapp">
+                        </Appearance>
+                        <Text id='midbartext' string='4000' solid='false' >
+                            <Fontstyle family="'SANS'" style="BOLD" size="2" justify='"MIDDLE"'></Fontstyle>
+                        </Text>
+                      </Shape>
+                      
+                      <Shape>
+                        <Appearance USE="textapp">
+                        </Appearance>
+                        <TriangleSet2D vertices='-0.2 -0.1, 0.2 -0.1, 0 -1'></TriangleSet2D>
+                      </Shape>
+                      </Transform>
+                      
+                      <Transform translation='100 15 0' scale='10 10 1'>
+                      <Shape bboxSize='10 10 10'>
+                        <Appearance USE="textapp">
+                        </Appearance>
+                        <Text id='maxbartext' string="7200" solid='false' >
+                            <Fontstyle USE="scaletext"></Fontstyle>
+                        </Text>
+                      </Shape>
+                      </Transform>
+                      
+                      <Transform id='colorbar' translation='0 0 0'>
+                        <Shape>
+                          <Appearance>
+                            <Material diffuseColor='grey'></Material>
+                            <ImageTexture url='rainbow.png'></ImageTexture>
+                          </Appearance>
+                          <Rectangle2D size='200 20' subdivision='2 2'></Rectangle2D>
+                        </Shape>
+                      </Transform>
+                      
+                    </Transform>
+                  </Sceengroup>
+                </Billboard>
+                <Transform id='volTrafo' translation='23125 -4600 24500' rotation='1 0 0 1.5707' scale='1 1 1'>
+                <VolumeData dimensions='46250.0 49000.0 10000.0' allowViewpointInside='true'>
+                  <ImageTextureAtlas id="ita" containerField="voxels" url="grid.png" numberOfSlices="100" slicesOverX="10" slicesOverY="10">
+                  </ImageTextureAtlas>
+                  <RadarVolumeStyle id="vs" DEF="VOLREN3D" accumFactor='0.1' isoSurfaceCutoffValue="-0.1" transparency="1.0" intensityLimits="0.1 0.8" renderMode="2" xSectionPosition="0.5">
+                    <ImageTexture containerField='transferFunction' url='rainbow.png'></ImageTexture>
+                      <!--RenderedTexture id="deptex" containerField='depthTexture' update="always" dimensions="800 600 4" depthMap="true">
+                        <Viewpoint USE="vp"></Viewpoint>
+                          <Background USE="bg"></Background>
+                            <Transform>
+                              <group USE="cut"></group>
+                              <group USE="dem"></group>
+                            </Transform>
+                      </RenderedTexture-->
+                  </RadarVolumeStyle>
+                </VolumeData>
+                </Transform>
+              </GeoLocation>
+            </group>
+        </group>
+        <group render="true">
+            <group def='left'>
+                <shape>
+                    <appearance>
+                        <renderedtexture id="rtLeft" stereoMode="LEFT_EYE" update='ALWAYS' dimensions='640 800 4' oculusRiftVersion='2' repeatS='false' repeatT='false'>
+                            <!--viewpoint use='vp1' containerfield='viewpoint'></viewpoint-->
+                            <background use='bgnd' containerfield='background'></background>
+                            <group use='theScene' containerfield="scene"></group>
+                        </renderedtexture>
+                        <composedshader>
+                            <field name='tex' type='SFInt32' value='0'></field>
+                            <shaderpart type='VERTEX'>
+                                attribute vec3 position;
+                                attribute vec2 texcoord;
+
+                                uniform mat4 modelViewProjectionMatrix;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                vec2 pos = sign(position.xy);
+                                fragTexCoord = texcoord;
+
+                                gl_Position = vec4((pos.x - 1.0) / 2.0, pos.y, 0.0, 1.0);
+                                }
+                            </shaderpart>
+                            <shaderpart def="frag" type='FRAGMENT'>
+                                #ifdef GL_ES
+                                precision highp float;
+                                #endif
+
+                                uniform sampler2D tex;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                gl_FragColor = texture2D(tex, fragTexCoord);
+                                }
+                            </shaderpart>
+                        </composedshader>
+                    </appearance>
+                    <plane solid="false"></plane>
+                </shape>
+            </group>
+            <group def='right'>
+                <shape>
+                    <appearance>
+                        <renderedtexture id="rtRight" stereoMode="RIGHT_EYE" update='ALWAYS' oculusRiftVersion='2' dimensions='640 800 4' repeatS='false' repeatT='false'>
+                            <!--viewpoint use='vp1' containerfield='viewpoint'></viewpoint-->
+                            <background use='bgnd' containerfield='background'></background>
+                            <group use='theScene' containerfield="scene"></group>
+                        </renderedtexture>
+                        <composedshader>
+                            <field name='tex' type='SFInt32' value='0'></field>
+                            <shaderpart type='VERTEX'>
+                                attribute vec3 position;
+                                attribute vec2 texcoord;
+
+                                uniform mat4 modelViewProjectionMatrix;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                vec2 pos = sign(position.xy);
+                                fragTexCoord = texcoord;
+
+                                gl_Position = vec4((pos.x + 1.0) / 2.0, pos.y, 0.0, 1.0);
+                                }
+                            </shaderpart>
+                            <shaderpart use="frag" type='FRAGMENT'>
+                            </shaderpart>
+                        </composedshader>
+                    </appearance>
+                    <plane solid="false"></plane>
+                </shape>
+            </group>
+        </group>
+    </Scene>
+  <button id="enterVR" onclick="enterVR();"></button>  
+</x3d>
+  <div id='hud'>
+    <p>Threshold: <span id="isotext"></span> m/s</p>
+    <input id="iso" type="range" min="-0.001" max="1" step="0.001" ></input>
+    
+    <p>Color min.: <span id="mintext">800</span> m/s</p>
+    <input id="min" type="range" min="0" max="1" step="0.001" value="0"></input>
+    
+    <p>Color max.: <span id="maxtext">7200</span> m/s</p>
+    <input id="max" type="range" min="0" max="1" step="0.001" value="0.9"></input>
+    
+    <p>Intensity:</p>
+    <input id="af" type="range" min="0" max="1" step="0.01" value="0.1" ></input>
+    
+    <p>Section azimuth: <span id="ocptext"></span>&deg</p>
+    <input id="ocp" type="range" min="0" max="361" step="1" ></input>
+    
+    <p>Section Position:</p>
+    <input id="mcp" type="range" min="0" max="1" step="0.01" ></input>
+    
+    <p>vertical scale: <span id="vetext">1</span></p>
+    <input id="ve" type="range" min="-4" max="4" step="0.125" ></input>
+  </div>
+  
+</div>
+  <script type="text/javascript">
+    start();
+    function start() {
+            //document.getElementById("deptex").setAttribute("dimensions", w.substring(0, w.length-2) + " " + h.substring(0, h.length-2) + " 4");
+            var volStyle = document.getElementById("vs");
+            var volTrafo = document.getElementById("volTrafo");
+            var minEl = document.getElementById("min");
+            var maxEl = document.getElementById("max");
+            var isotextEl = document.getElementById("isotext");
+            var mintextEl = document.getElementById("mintext");
+            var maxtextEl = document.getElementById("maxtext");
+            var minbartextEl = document.getElementById("minbartext");
+            var maxbartextEl = document.getElementById("maxbartext");
+            var midbartextEl = document.getElementById("midbartext");
+            var ocptextEl = document.getElementById("ocptext");
+            var vetextEl = document.getElementById("vetext");
+            var velscale = 8000;
+            var midbarVal;
+            
+            document.getElementById("iso").oninput = (function() {
+                volStyle.setAttribute("isoSurfaceCutoffValue", this.value);
+                isotextEl.textContent = this.value * velscale;
+            });
+            
+            minEl.oninput = (function() {
+                if ( this.value > maxEl.value) { maxEl.value = this.value + 0.01;} 
+                volStyle.setAttribute("intensityLimits", this.value + " " + maxEl.value);
+                mintextEl.textContent = this.value * velscale;
+                minbartextEl.setAttribute("string", this.value * velscale);
+                midbarVal = (1.0 * maxtextEl.textContent + this.value * velscale) / 2;
+                midbartextEl.setAttribute("string", Math.round(midbarVal));
+            });
+            
+            maxEl.oninput = (function() {
+                if ( this.value < minEl.value) { minEl.value = this.value - 0.01;} 
+                volStyle.setAttribute("intensityLimits", minEl.value + " " + this.value);
+                maxtextEl.textContent = this.value * velscale;
+                maxbartextEl.setAttribute("string", this.value * velscale);
+                midbarVal = (this.value * velscale + 1.0 * mintextEl.textContent) / 2;
+                midbartextEl.setAttribute("string", Math.round(midbarVal));
+            });
+            
+            document.getElementById("af").oninput = (function() {
+                volStyle.setAttribute("accumFactor", this.value);
+            });
+            
+            document.getElementById("mcp").oninput = (function() {
+                volStyle.setAttribute("xSectionPosition", this.value);
+            });
+            
+            document.getElementById("ocp").oninput = (function() {
+                var angle = this.value * Math.PI/180;
+                var xo = Math.cos(angle) + " " + Math.sin(angle) + " 0 1.5708";
+                var azi = (this.value * 1.0 + 90.0) % 180;
+                if (angle > 2 * Math.PI) {
+                  xo = "1 0 0 3.141592";
+                  azi = "horizontal";}
+                volStyle.setAttribute("xSectionOrientation", xo);
+                ocptextEl.textContent = azi;
+            });
+            
+            document.getElementById("ve").oninput = (function() {
+                var zscale = Math.pow(2, this.value);
+                volTrafo.setAttribute("scale", "1 1 " + zscale);
+                vetextEl.textContent = zscale.toPrecision(5);
+            });
+            
+    }
+    
+    var runtime = null;
+    var rtLeft, rtRight;
+    var lastW, lastH;
+
+    var vrHMD = null, vrSensor = null;
+
+    document.onload = function ()
+    {
+        runtime = document.getElementById('x3dscene').runtime;
+        rtLeft = document.getElementById('rtLeft');
+        rtRight = document.getElementById('rtRight');
+
+        lastW = +runtime.getWidth();
+        lastH = +runtime.getHeight();
+
+        var hw = Math.round(lastW / 2);
+        rtLeft.setAttribute('dimensions',  hw + ' ' + lastH + ' 4');
+        rtRight.setAttribute('dimensions', hw + ' ' + lastH + ' 4');
+        
+        //var vp_bound = runtime.getActiveBindable('viewpoint');
+        
+        var vp_pos = { }; // save initial vp
+        var vp_ori = { };
+        var vp_ori_matrix = { };
+        var mat_view;
+
+        vp1 = document.getElementById('vp1');
+        vp1.addEventListener("viewpointChanged", view_changed, false);
+        vp2 = document.getElementById('vp2');
+        vp2.addEventListener("viewpointChanged", view_changed, false);
+        
+        vp_pos[vp1.id] = vp1.getFieldValue('position');
+        vp_ori[vp1.id] = vp1.getFieldValue('orientation'); // as quaternion
+        vp_ori_matrix[vp1.id] = vp1.getFieldValue('orientation').toMatrix(); // as matrix
+        vp_pos[vp2.id] = vp2.getFieldValue('position');
+        vp_ori[vp2.id] = vp2.getFieldValue('orientation'); // as quaternion
+        vp_ori_matrix[vp2.id] = vp2.getFieldValue('orientation').toMatrix(); // as matrix        
+        //determine scale factor for head movement
+        //assume distance between viewpoints is representative of scene size
+        var dst = vp_pos[vp1.id].subtract(vp_pos[vp2.id]);
+        //scale so that 0.5m head movement corresponds to distance between viewpoints;
+        var giant_factor = dst.length() / 0.5;
+        
+        var old_vp = runtime.getActiveBindable('viewpoint');
+        var vp_id = old_vp.getAttribute("id");
+        //var vpori = vp1ori;
+        //var vppos = vp1pos;
+        //var vp_by_vr = false;
+        
+        var initDone = false;
+        
+        window.addEventListener("keypress", onkey, true); //may have to scope to div
+        
+        //github.com/MozVR examples provide this for resetting position
+        function onkey(event) {
+        
+	    if (!(event.metaKey || event.altKey || event.ctrlKey)) {
+				event.preventDefault();
+			}
+	    if (event.charCode == 'z'.charCodeAt(0)) { // z
+	    	if (vrSensor) {vrSensor.resetSensor();};
+	        }
+        }
+        
+        function view_changed(e) {
+            var new_vp = runtime.getActiveBindable('viewpoint');
+            if (old_vp == new_vp) {return false;}
+            //if (vp_by_vr) {return false;}
+            //vppos = e.position;
+            //vpori = x3dom.fields.Quaternion.axisAngle(e.orientation[0], e.orientation[1]); // to quaternion from axis-angle
+            //vp_bound = runtime.getActiveBindable('viewpoint');
+            old_vp = new_vp;
+            vp_id = old_vp.getAttribute("id");
+            console.log("active Viewpoint: " + old_vp.getAttribute("id"));
+            //or e.target.getFieldValue
+        };
+
+        runtime.enterFrame = function () {
+            //vp_by_vr = false;
+        		mat_view = runtime.viewMatrix();
+    			var vRotation = new x3dom.fields.Quaternion(0, 0, 1, 0);
+    			vRotation.setValue(mat_view.inverse());
+    			var vRot = vRotation.toAxisAngle();
+    			var vTranslation = mat_view.inverse().e3();
+            //console.log(rot[0].x,rot[0].y,rot[0].z,rot[1]);
+                
+
+            if (!vrSensor)
+                return;
+            var state = vrSensor.getState();
+            
+            if (!initDone) {
+                console.log(state);
+            }
+
+  		    if (state.orientation !== null) {
+			
+				var h = state.orientation;
+				var q = new x3dom.fields.Quaternion(h.x, h.y, h.z, h.w); // new for every frame ?
+        
+                //multiply with initial viewpoint orientation 
+				var aa = vp_ori[vp_id].multiply(q).toAxisAngle();
+                //use current viewpoint orientation, should have been reset to view matrix
+                //var aa = vRotation.multiply(q).toAxisAngle();
+				//console.log(aa[0].x + " " + aa[0].y + " " + aa[0].z + " " + aa[1]);
+                //vp_by_vr = true;
+                // not sure why not request, release
+                //may or may not work well
+				old_vp.setAttribute("orientation", aa[0].x + " " + aa[0].y + " " + aa[0].z + " " + aa[1]); // triggers viewpointchanged event
+				old_vp.setAttribute("position", vTranslation.x + " " + vTranslation.y + " " + vTranslation.z); // triggers viewpointchanged event
+    			//may need to manipulate view matrix directly
+			}
+
+			if (state.position !== null) {
+			
+				var posi = old_vp.requestFieldRef('position');
+				
+                //multiply head position with initial viewpoint orientation to align
+    			
+                var aligned_head_position = new x3dom.fields.SFVec3f(state.position.x, state.position.y, state.position.z);
+                
+                aligned_head_position = vp_ori_matrix[vp_id].multMatrixVec(aligned_head_position.multiply(giant_factor));
+                
+                //var posi_new = vp_pos[vp_id].addScaled(state.position, giant_factor); // returns new instance
+                
+                posi.x = vp_pos[vp_id].x + aligned_head_position.x;
+                posi.y = vp_pos[vp_id].y + aligned_head_position.y;
+                posi.z = vp_pos[vp_id].z + aligned_head_position.z;
+                
+                //posi.x = posi_new.x; // assign to reference
+				//posi.y = posi_new.y;
+				//posi.z = posi_new.z;
+                
+                //vp_by_vr = true;
+                //do not update while flying
+				//old_vp.releaseFieldRef('position'); // triggers viewpointchanged event
+				
+			}
+        };
+
+        runtime.exitFrame = function ()
+        {
+            var w = +runtime.getWidth() * 2;
+            var h = +runtime.getHeight() * 2;
+            //reset to undo hmd looking
+            //or setView?
+            //old_vp._xdomNode.setViewAbsolute(mat_view);
+            //if (old_vp._xdomNode !== undefined) {old_vp._xdomNode._viewMatrix = mat_view;}
+            if (w != lastW || h != lastH)
+            {
+                var half = Math.round(w / 2);
+                rtLeft.setAttribute('dimensions',  half + ' ' + h + ' 4');
+                rtRight.setAttribute('dimensions', half + ' ' + h + ' 4');
+
+                console.log(w + ", " + h);
+
+                lastW = w;
+                lastH = h;
+            }
+
+            if (!initDone) {
+                initDone = true;
+            }
+
+            runtime.triggerRedraw();
+        };
+
+    };
+    
+    function enterVR()
+    {
+        if(vrHMD) {
+        
+            var canvas = document.getElementsByTagName("canvas")[0];
+            //var canvas = document.getElementById("frame");
+            if (canvas.webkitRequestFullscreen) {
+                canvas.webkitRequestFullscreen({ vrDisplay: vrHMD });
+            } else if (canvas.mozRequestFullScreen) {
+                canvas.mozRequestFullScreen({ vrDisplay: vrHMD });
+            }
+            //shift focus to element to enable keyboard
+            canvas.setAttribute("tabIndex", -1); //setting tabindex allow focusing
+            canvas.focus();
+        }
+    }
+
+	/* ----------------------------------------------------------- */
+	function vrDeviceCallback(vrdevs) {
+        var i;
+
+	    // First, find a HMD -- just use the first one we find
+	    for (i = 0; i < vrdevs.length; ++i) {
+	        if (vrdevs[i] instanceof HMDVRDevice) {
+	            vrHMD = vrdevs[i];
+	            console.log(vrHMD);
+	            break;
+	        }
+	    }
+
+	    if (!vrHMD)
+	        return;
+
+	    // Then, find that HMD's position sensor
+	    for (i = 0; i < vrdevs.length; ++i) {
+	        if (vrdevs[i] instanceof PositionSensorVRDevice &&
+                vrdevs[i].hardwareUnitId == vrHMD.hardwareUnitId) {
+	            vrSensor = vrdevs[i];
+	            console.log(vrSensor);
+	            break;
+	        }
+	    }
+
+	    if (!vrHMD || !vrSensor) {
+	        alert("Didn't find a HMD and sensor!");
+	        return;
+	    }
+
+	    var leftEyeParams, 
+		    rightEyeParams, 
+			leftFOV, 
+			rightFOV, 
+			leftTranslation, 
+			rightTranslation;
+		
+		
+		if (vrHMD.getEyeParameters !== undefined) {
+			leftEyeParams = vrHMD.getEyeParameters("left");
+			rightEyeParams = vrHMD.getEyeParameters("right");
+			
+			console.log(leftEyeParams);
+			console.log(rightEyeParams);
+					
+			leftFOV = leftEyeParams.currentFieldOfView;
+			rightFOV = rightEyeParams.currentFieldOfView;
+
+			console.log(leftFOV);
+			console.log(rightFOV);
+
+			leftTranslation = leftEyeParams.eyeTranslation;
+			rightTranslation = rightEyeParams.eyeTranslation;
+
+			console.log(leftTranslation);
+			console.log(rightTranslation);
+		} else {
+			leftFOV = vrHMD.getCurrentEyeFieldOfView("left");
+			rightFOV = vrHMD.getCurrentEyeFieldOfView("right");
+
+			console.log(leftFOV);
+			console.log(rightFOV);
+
+			leftTranslation = vrHMD.getEyeTranslation("left");
+			rightTranslation = vrHMD.getEyeTranslation("right");
+
+			console.log(leftTranslation);
+			console.log(rightTranslation);
+		}
+	}
+
+    if (navigator.getVRDevices)
+	    navigator.getVRDevices().then(vrDeviceCallback);
+
+    //http://blog.tojicode.com/2014/07/bringing-vr-to-chrome.html
+    //http://blog.bitops.com/blog/2014/08/20/updated-firefox-vr-builds/
+  </script>
+    
+  </body>
+</html>

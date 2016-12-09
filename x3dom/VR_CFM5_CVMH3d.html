@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta charset="utf-8">
+    <title>CVM-H in a web page</title>
+    <link rel="stylesheet" type="text/css" href="x3dom.css">
+    <script type="text/javascript" src="x3dom-full.js"></script>
+    <script type="text/javascript" src="webvr-polyfill_Dec2015.js"></script>
+    <script type="text/javascript" src="https://gist.github.com/andreasplesch/644d7e9f54154b5fa7f1/raw/7671901c99d19da7495d588ece415dd839e7ff90/VRfixText.user.js"></script>
+    
+    <style>
+      #x3dscene {
+        background-color: black;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        height:  800px;
+      }
+      #hud {
+        _transform-style: preserve-3d;
+        _transform: translateX(100px) translateY(100px) translateZ (-50px);
+        _perspective: 600px;
+        position: absolute;
+        _left: 0px;
+        padding: 10px; 
+        background: grey; 
+        opacity: 0.8; 
+        font-family: arial; 
+        font-size: 12px; 
+        margin-left: 8px
+      }
+      #hudd > * {
+        transform-style: preserve-3d;
+        _transform: translate3d(100px, 100px, 100px);
+      }
+       #enterVR {
+        background: rgba(0, 0, 0, .35) url("icon-goggles-white.svg") 50% 50% no-repeat;
+        background-size: 70% 70%;
+        color: #fff;
+        height: 50px;
+        width: 60px;
+        border: none;
+        background-color: rgba(120, 120, 120, .35);
+        padding: 1px 6px;
+        position:absolute;
+        bottom:10px; 
+        right:10px;
+        cursor: pointer;    
+    }
+    
+    #enterVR:hover {
+        background-color: rgba(120, 120, 120, .65);
+    }
+    
+    .goggles {
+        height: 30px;
+        text-align: center;
+        color: buttontext;
+    }
+    </style>
+</head>
+<body>
+  <h3>CVM H</h3>
+  
+<p>Use controls below to slice and adjust colors. Click on goggles (rectangle) to switch to VR. Press z to reset view in VR. Use PgUp/PgDn to switch viewpoints. Move head forward to zoom in.</p>
+<div id="frame">
+<x3d id="x3dscene">
+    <param name="showLog" value="true"></param>
+    <param name="showStat" value="true"></param>
+    <Scene id='scene'>
+        <!-- disable culling, otherwise the texture planes disappear -->
+        <Environment frustumCulling="false"></Environment>
+        <Viewpoint DEF='vp1' id='vp1' position="-2472845.25963 -4728637.26520 3487136.78333" orientation="0.94636 -0.12419 0.29829 2.35196" zNear="139.91409" zFar="1399140.91219" centerofRotation="-2486382.4567696294 -4703305.987062169 3506174.1505457587" description="vp1"></Viewpoint>
+        <Viewpoint DEF='vp2' id='vp2' position="-2463109.09736 -4666010.71356 3569388.92905" orientation="0.35547 0.21427 0.90979 2.53885" 
+    zNear="139.91409" zFar="1399140.91219" centerofRotation="-2485280.716014316 -4664317.061311953 3538022.202066815" description="vp2"></Viewpoint>
+        <background DEF='bgnd' skyColor="0 0 0"></background>
+        <group id='root' render='false'>
+            <group DEF='theScene'>
+              <inline url="cal_outline.x3d"></inline>
+              <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
+              <GeoLocation geoCoords='371052.25 3774000 400' geoSystem='"UTM" "Z11" "N" "CC" "easting_first"'>
+                <Transform id='volTrafo' translation='23125 -4600 24500' rotation='1 0 0 1.5707' scale='1 1 1'>
+                <VolumeData dimensions='46250.0 49000.0 10000.0' allowViewpointInside='true'>
+                  <ImageTextureAtlas id="ita" containerField="voxels" url="grid.png" numberOfSlices="100" slicesOverX="10" slicesOverY="10">
+                  </ImageTextureAtlas>
+                  <RadarVolumeStyle id="vs" DEF="VOLREN3D" accumFactor='0.5' isoSurfaceCutoffValue="-0.1" transparency="1.0" intensityLimits="0.1 0.8" renderMode="2" xSectionPosition="0.5">
+                    <ImageTexture containerField='transferFunction' url='rainbow.png'></ImageTexture>
+                      <!--RenderedTexture id="deptex" containerField='depthTexture' update="always" dimensions="800 600 4" depthMap="true">
+                        <Viewpoint USE="vp"></Viewpoint>
+                          <Background USE="bg"></Background>
+                            <Transform>
+                              <group USE="cut"></group>
+                              <group USE="dem"></group>
+                            </Transform>
+                      </RenderedTexture-->
+                  </RadarVolumeStyle>
+                </VolumeData>
+                </Transform>
+                <Billboard>
+                  <Screengroup>
+                    <Transform id='scalebar' translation='20 20 0'>
+                      <Transform translation='-100 15 0' scale='10 10 1'>
+                        <Shape>
+                          <Appearance DEF="textapp">
+                            <Material ambientIntensity='0.0933' diffuseColor='0.32 0.54 0.26' shininess='0.51' specularColor='0.46 0.46 0.46'></Material>
+                          </Appearance>
+                          <Text id='minbartext' string="800" solid='false'>
+                              <Fontstyle DEF="textstyle" family="'SANS'" style="BOLD" size="2" justify="middle" quality='2'></Fontstyle>
+                          </Text>
+                        </Shape>
+                      </Transform>
+                      
+                      <Transform translation='0 20 0' scale='10 10 1'>
+                      <Shape>
+                        <Appearance USE="textapp">
+                        </Appearance>
+                        <Text id='midbartext' string='4000' solid='false' >
+                            <Fontstyle family="'SANS'" style="BOLD" size="1" justify='"MIDDLE"'></Fontstyle>
+                        </Text>
+                      </Shape>
+                      <Shape>
+                        <Appearance USE="textapp">
+                        </Appearance>
+                        <TriangleSet2D vertices='-0.2 -0.1, 0.2 -0.1, 0 -1'></TriangleSet2D>
+                      </Shape>
+                      </Transform>
+                      
+                      <Transform translation='100 15 0' scale='10 10 1'>
+                      <Shape bboxSize='10 10 10'>
+                        <Appearance USE="textapp">
+                        </Appearance>
+                        <Text id='maxbartext' string="7200" solid='false' >
+                            <Fontstyle family="'SANS'" style="BOLD" size="2" justify="middle"></Fontstyle>
+                        </Text>
+                      </Shape>
+                      </Transform>
+                      
+                      <Transform id='colorbar' translation='0 0 0'>
+                        <Shape>
+                          <Appearance>
+                            <Material diffuseColor='grey'></Material>
+                            <ImageTexture url='rainbow.png'></ImageTexture>
+                          </Appearance>
+                          <Rectangle2D size='200 20' subdivision='2 2'></Rectangle2D>
+                        </Shape>
+                      </Transform>
+                    </Transform>
+                  </Sceengroup>
+                </Billboard>
+              </GeoLocation>
+            </group>
+        </group>
+        <group render="true">
+            <group def='left'>
+                <shape>
+                    <appearance>
+                        <renderedtexture id="rtLeft" stereoMode="LEFT_EYE" update='ALWAYS' dimensions='640 800 4' oculusRiftVersion='2' repeatS='false' repeatT='false'>
+                            <!--viewpoint use='vp1' containerfield='viewpoint'></viewpoint-->
+                            <background use='bgnd' containerfield='background'></background>
+                            <group use='theScene' containerfield="scene"></group>
+                        </renderedtexture>
+                        <composedshader>
+                            <field name='tex' type='SFInt32' value='0'></field>
+                            <shaderpart type='VERTEX'>
+                                attribute vec3 position;
+                                attribute vec2 texcoord;
+
+                                uniform mat4 modelViewProjectionMatrix;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                vec2 pos = sign(position.xy);
+                                fragTexCoord = texcoord;
+
+                                gl_Position = vec4((pos.x - 1.0) / 2.0, pos.y, 0.0, 1.0);
+                                }
+                            </shaderpart>
+                            <shaderpart def="frag" type='FRAGMENT'>
+                                #ifdef GL_ES
+                                precision highp float;
+                                #endif
+
+                                uniform sampler2D tex;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                gl_FragColor = texture2D(tex, fragTexCoord);
+                                }
+                            </shaderpart>
+                        </composedshader>
+                    </appearance>
+                    <plane solid="false"></plane>
+                </shape>
+            </group>
+            <group def='right'>
+                <shape>
+                    <appearance>
+                        <renderedtexture id="rtRight" stereoMode="RIGHT_EYE" update='ALWAYS' oculusRiftVersion='2' dimensions='640 800 4' repeatS='false' repeatT='false'>
+                            <!--viewpoint use='vp1' containerfield='viewpoint'></viewpoint-->
+                            <background use='bgnd' containerfield='background'></background>
+                            <group use='theScene' containerfield="scene"></group>
+                        </renderedtexture>
+                        <composedshader>
+                            <field name='tex' type='SFInt32' value='0'></field>
+                            <shaderpart type='VERTEX'>
+                                attribute vec3 position;
+                                attribute vec2 texcoord;
+
+                                uniform mat4 modelViewProjectionMatrix;
+                                varying vec2 fragTexCoord;
+
+                                void main()
+                                {
+                                vec2 pos = sign(position.xy);
+                                fragTexCoord = texcoord;
+
+                                gl_Position = vec4((pos.x + 1.0) / 2.0, pos.y, 0.0, 1.0);
+                                }
+                            </shaderpart>
+                            <shaderpart use="frag" type='FRAGMENT'>
+                            </shaderpart>
+                        </composedshader>
+                    </appearance>
+                    <plane solid="false"></plane>
+                </shape>
+            </group>
+        </group>
+              
+        
+        
+      <!-- add fault inlines here -->
+      <!--
+<inline url="BNRA-BMFZ-MULT-Black_Mountain_fault-CFM3.x3d"></inline>
+<inline url="BNRA-NDVZ-MULT-Northern_Death_Valley_fault-CFM2.x3d"></inline>
+<inline url="BNRA-SDVZ-MULT-Southern_Death_Valley_fault-vertical-CFM3.x3d"></inline>
+<inline url="CRFA-BPPM-EAST-Big_Pine_fault-CFM4.x3d"></inline>
+<inline url="CRFA-BPPM-LCKV-Lockwood_Valley_fault-CFM2.x3d"></inline>
+<inline url="CRFA-BPPM-PMTS-Pine_Mountain_fault-CFM2.x3d"></inline>
+<inline url="CRFA-BPPM-WEST-Big_Pine_fault-CFM2.x3d"></inline>
+<inline url="CRFA-CSBL-CSML-Casmalia_fault-CFM4.x3d"></inline>
+<inline url="CRFA-CSBL-LALM-Los_Alamos_fault-steep-CFM5.x3d"></inline>
+<inline url="CRFA-CSBL-ORCT-Orcutt_blind_fault-CFM5.x3d"></inline>
+<inline url="CRFA-CSBL-PEZN-Pezzoni_Casmalia_fault-truncated-CFM5.x3d"></inline>
+<inline url="CRFA-CSBL-ZACA-Zaca_blind_fault-CFM5.x3d"></inline>
+<inline url="CRFA-LMPZ-EAST-Lompoc_blind_ramp-CFM5.x3d"></inline>
+<inline url="CRFA-LMPZ-WEST-Lompoc_blind_ramp-CFM5.x3d"></inline>
+<inline url="CRFA-LNHZ-MULT-Lions_Head_fault-CFM4.x3d"></inline>
+<inline url="CRFA-LOSO-LSOS-Los_Osos_fault-CFM4.x3d"></inline>
+<inline url="CRFA-LPNZ-MULT-La_Panza_fault-CFM4.x3d"></inline>
+<inline url="CRFA-NAFZ-MULT-Nacimiento_fault-south-CFM2.x3d"></inline>
+<inline url="CRFA-OCNZ-SLCR-Oceanic_backthrust-CFM4.x3d"></inline>
+<inline url="CRFA-OCNZ-SLCR-Oceanic_fault-CFM4.x3d"></inline>
+<inline url="CRFA-REHZ-EHSN-East_Huasna_fault-CFM4.x3d"></inline>
+<inline url="CRFA-REHZ-MULT-Rinconada_fault-CFM4.x3d"></inline>
+<inline url="CRFA-SCFZ-SCYM-South_Cuyama_fault-CFM3.x3d"></inline>
+<inline url="CRFA-SJMZ-MRLS-Morales_fault-CFM3.x3d"></inline>
+<inline url="CRFA-SLRS-MULT-San_Luis_Range_fault_system-CFM4.x3d"></inline>
+<inline url="CRFA-SLRS-SHRL-Shoreline_fault-CFM4.x3d"></inline>
+<inline url="CRFA-SLRS-SLBS-San_Luis_Bay_fault-CFM4.x3d"></inline>
+<inline url="CRFA-SLRS-SYNV-Santa_Ynez_Valley_blind_fault-CFM5.x3d"></inline>
+<inline url="ETRA-BBFS-1992-Big_Bear_rupture-CFM2.x3d"></inline>
+<inline url="ETRA-BCFZ-MULT-Blue_Cut_fault-CFM2.x3d"></inline>
+<inline url="ETRA-CLHS-NCHS-Grass_Valley_fault-steep-CFM5.x3d"></inline>
+<inline url="ETRA-CLHS-SBMT-Tunnel_Ridge-Arrastre_Canyon_fault-steep-CFM5.x3d"></inline>
+<inline url="ETRA-CLHS-SCHS-Cleghorn_fault-steep-CFM5.x3d"></inline>
+<inline url="ETRA-LSBM-1992-Joshua_Tree_sequence-CFM5.x3d"></inline>
+<inline url="ETRA-LSBM-LGCS-Long_Canyon_fault-CFM5.x3d"></inline>
+<inline url="ETRA-LSBM-MULT-Burnt_Mountain-East_Wide_Canyon_fault-CFM5.x3d"></inline>
+<inline url="ETRA-LSBM-MULT-Eureka_Peak-West_Deception_Canyon_fault-CFM5.x3d"></inline>
+<inline url="ETRA-NFTS-DTMT-Deep_detachment-CFM5.x3d"></inline>
+<inline url="ETRA-NFTS-EAST-Eastern_North_Frontal_fault-vertical-CFM5.x3d"></inline>
+<inline url="ETRA-NFTS-EAST-North_Frontal_Thrust_fault-linked-CFM5.x3d"></inline>
+<inline url="ETRA-NFTS-WEST-North_Frontal_Thrust_fault-lowdip-CFM5.x3d"></inline>
+<inline url="ETRA-PMFZ-MRVS-Morongo_Valley_fault-CFM5.x3d"></inline>
+<inline url="ETRA-PMFZ-MULT-Pinto_Mountain_fault-CFM5.x3d"></inline>
+<inline url="GRFS-GRFZ-EAST-Garlock_fault-CFM5.x3d"></inline>
+<inline url="GRFS-GRFZ-EAST-Owl_Lake_fault-CFM5.x3d"></inline>
+<inline url="GRFS-GRFZ-WEST-Garlock_fault-CFM5.x3d"></inline>
+<inline url="GVFA-KRCS-KRCN-Kern_Canyon_fault-CFM5.x3d"></inline>
+<inline url="GVFA-KRCS-LISA-Lake_Isabella_lineament-CFM2.x3d"></inline>
+<inline url="GVFA-PLFZ-MULT-Pleito_fault-CFM2.x3d"></inline>
+<inline url="GVFA-TDRS-COAL-Coalinga_blind_fault-CFM2.x3d"></inline>
+<inline url="GVFA-TDRS-KTLM-Kettleman_Hills_blind_fault-North_Dome-CFM2.x3d"></inline>
+<inline url="GVFA-TDRS-LSTH-Lost_Hills_blind_fault-CFM2.x3d"></inline>
+<inline url="GVFA-WWFZ-EAST-Scodie_Lineament-CFM1.x3d"></inline>
+<inline url="GVFA-WWFZ-MULT-White_Wolf_fault-CFM1.x3d"></inline>
+<inline url="MJVA-BWFZ-MULT-Blackwater_fault-CFM1.x3d"></inline>
+<inline url="MJVA-CHFZ-MULT-Calico-Hidalgo_fault-CFM1.x3d"></inline>
+<inline url="MJVA-CREC-CMPR-Camp_Rock_fault-CFM5.x3d"></inline>
+<inline url="MJVA-CREC-CPMT-Copper_Mountain_fault-CFM5.x3d"></inline>
+<inline url="MJVA-CREC-EMRS-Emerson_fault-CFM5.x3d"></inline>
+<inline url="MJVA-CREC-EMRS-Galway_Lake_fault-CFM2.x3d"></inline>
+<inline url="MJVA-CREC-EMRS-North_Emerson_fault-CFM3.x3d"></inline>
+<inline url="MJVA-CRSF-CADY-Cady_fault-CFM1.x3d"></inline>
+<inline url="MJVA-CRSF-GNTM-McLean_Lake-Drinkwater_Lake_fault-CFM1.x3d"></inline>
+<inline url="MJVA-CRSF-GNTM-Nelson_Lake_fault-CFM1.x3d"></inline>
+<inline url="MJVA-CRSF-MANX-Manix_fault-CFM1.x3d"></inline>
+<inline url="MJVA-CRSF-TFMT-Coyote_Canyon_fault-CFM1.x3d"></inline>
+<inline url="MJVA-ECSZ-1992-Barstow_Trend-CFM5.x3d"></inline>
+<inline url="MJVA-ECSZ-1992-Landers_rupture_detailed_splays-CFM3.x3d"></inline>
+<inline url="MJVA-ECSZ-1999-Hector_Mine_rupture_dipping-CFM2.x3d"></inline>
+<inline url="MJVA-GLPS-GLDS-Goldstone_Lake_fault-CFM1.x3d"></inline>
+<inline url="MJVA-GLPS-PRDS-Paradise_fault-CFM1.x3d"></inline>
+<inline url="MJVA-HPFZ-MULT-Gravel_Hills-Harper_Lake_fault-CFM1.x3d"></inline>
+<inline url="MJVA-HSLZ-MULT-Helendale-South_Lockhart_fault-CFM5.x3d"></inline>
+<inline url="MJVA-HSLZ-SBMT-Pipes_Canyon_fault-CFM5.x3d"></inline>
+<inline url="MJVA-HSLZ-SBMT-Pipes_Canyon_fault-north-extension-CFM5.x3d"></inline>
+<inline url="MJVA-HSLZ-SBMT-Southern_Helendale_fault-CFM5.x3d"></inline>
+<inline url="MJVA-JVFZ-MULT-Johnson_Valley_fault-CFM3.x3d"></inline>
+<inline url="MJVA-JVFZ-SJVS-Kickapoo_fault-CFM3.x3d"></inline>
+<inline url="MJVA-JVHZ-HMSV-Homestead_Valley_fault-CFM3.x3d"></inline>
+<inline url="MJVA-LCLZ-LDLW-Ludlow_fault-CFM1.x3d"></inline>
+<inline url="MJVA-LLBM-MULT-Lavic_Lake-North_West_Bullion_fault-CFM2.x3d"></inline>
+<inline url="MJVA-LWLZ-MULT-Lenwood-Lockhart_fault-CFM5.x3d"></inline>
+<inline url="MJVA-NEMV-GRLS-Garlic_Springs_fault-CFM1.x3d"></inline>
+<inline url="MJVA-NEMV-RDPS-Red_Pass_fault-CFM1.x3d"></inline>
+<inline url="MJVA-PBMZ-MULT-Pisgah_Bullion_Mesquite_Lake_fault-CFM3.x3d"></inline>
+<inline url="OCBA-CBFZ-CRBS-Coronado_Bank_east_splay-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-CBFZ-CRBS-Coronado_Bank_fault-north-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-CBFZ-CRBS-Coronado_Bank_fault-south-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-CBFZ-CRBS-Coronado_Bank_west_splay-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-CBKD-CRBS-Coronado_Bank_detachment-upper-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-CBKD-OCNS-Coronado_Bank_detachment-upper-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-CRFS-RDNC-Redondo_Canyon_fault-ZION-CFM2.x3d"></inline>
+<inline url="OCBA-DSCZ-DSCS-Descanso_fault-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-DSCZ-DSCS-Descanso_fault-east_splay-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-DSCZ-DSCS-Descanso_fault-west_splay-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault-A-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault-B-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault-D-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault-E-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault-main-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-FRFZ-SRRS-Ferrelo_fault-upper-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-IBFS-TMBK-Thirty_Mile_Bank_detachment-upper-RVRO-CFM1.x3d"></inline>
+<inline url="OCBA-OCSD-OCNS-Oceanside_detachment-RVRO-CFM1.x3d"></inline>
+<inline url="OCBA-PVFZ-MULT-Palos_Verdes_fault-CFM2.x3d"></inline>
+<inline url="OCBA-SCCR-MULT-Santa_Cruz-Catalina_Ridge_fault-CFM5.x3d"></inline>
+<inline url="OCBA-SCFZ-CTLB-San_Clemente_fault-splay-CFM5.x3d"></inline>
+<inline url="OCBA-SCFZ-SBRI-San_Clemente_fault_strand-CFM5.x3d"></inline>
+<inline url="OCBA-SCFZ-SCBR-San_Clemente_fault-LEGG-CFM5.x3d"></inline>
+<inline url="OCBA-SCFZ-SCLI-San_Clemente_fault-LEGG-CFM5.x3d"></inline>
+<inline url="OCBA-SDTZ-30MB-San_Diego_Trough_fault-LEGG-CFM5.x3d"></inline>
+<inline url="OCBA-SDTZ-CTLB-San_Diego_Trough_fault-LEGG-CFM5.x3d"></inline>
+<inline url="OCBA-SMCS-MULT-San_Mateo-Carlsbad_fault-SRLN-CFM5.x3d"></inline>
+<inline url="OCBA-SPBZ-NTHS-San_Pedro_Basin_fault-north-CFM5.x3d"></inline>
+<inline url="OCBA-SPBZ-STHS-San_Pedro_Basin_fault-south-LEGG-CFM5.x3d"></inline>
+<inline url="OCCA-HSFZ-MULT-Hosgri-San_Simeon_fault-CFM1.x3d"></inline>
+<inline url="PNRA-ATEV-AGCT-Agua_Caliente_fault_zone-CFM4.x3d"></inline>
+<inline url="PNRA-ATEV-EQVS-Earthquake_Valley_fault-east-CFM4.x3d"></inline>
+<inline url="PNRA-ATEV-EQVS-Earthquake_Valley_fault-main-CFM4.x3d"></inline>
+<inline url="PNRA-ATEV-EQVS-Earthquake_Valley_fault-west-CFM4.x3d"></inline>
+<inline url="PNRA-ATEV-MRHS-Hot_Springs_fault_CFM4.x3d"></inline>
+<inline url="PNRA-ATEV-MRHS-Murrieta-Hotsprings_fault-CFM4.x3d"></inline>
+<inline url="PNRA-CEPS-BLDH-Compton-Los_Alamitos_fault-CFM2.x3d"></inline>
+<inline url="PNRA-CEPS-LABS-Anaheim_fault-CFM1.x3d"></inline>
+<inline url="PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2.x3d"></inline>
+<inline url="PNRA-CEPS-PHLS-Lower_Elysian_Park_fault-CFM1.x3d"></inline>
+<inline url="PNRA-CRSF-ALCM-Sawtooth_Range_fault-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-CHNH-Yorba_Linda_lineament-CFM2.x3d"></inline>
+<inline url="PNRA-CRSF-CYMT-Devils_Canyon_fault-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-EMCP-El_Mayor-Cucapah_normal_fault-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-EMCP-El_Mayor-Cucapah_west_fault-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-OCOT-Ocotillo_fault-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-OCOT-Ocotillo_set1-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-OCOT-Ocotillo_set2-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-OCOT-Ocotillo_set3-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-OCOT-Ocotillo_set4-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-OCOT-Ocotillo_set5-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-PGWS-Painted_Gorge_Wash_fault-CFM4.x3d"></inline>
+<inline url="PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Shell_Beds_fault-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Yuha_Wash_fault-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Yuha_Well-Vista_del_Anza_fault-truncated-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Yuha_Well_fault-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Yuha_Well_fault-north_set1-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Yuha_Well_fault-northwest-steep-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Yuha_Well_fault-west-steep-CFM5.x3d"></inline>
+<inline url="PNRA-CRSF-YUHA-Yuha_fault-CFM5.x3d"></inline>
+<inline url="PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3.x3d"></inline>
+<inline url="PNRA-DVVZ-DVSV-Davies_Valley_fault-CFM5.x3d"></inline>
+<inline url="PNRA-DVVZ-NDVV-Northern_Davies_Valley_set1-CFM4.x3d"></inline>
+<inline url="PNRA-DVVZ-WDVV-West_Davies_Valley_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-CHNO-Chino_fault-Central_Ave-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-CHNO-Chino_fault-main-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-CYMT-Elsinore_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-GLIV-Glen_Ivy_North_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-GLIV-Glen_Ivy_South_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-INDV-Indiviso_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-INDV-Indiviso_fault-splay-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-JULN-Elsinore_fault-Wildomar-link-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-JULN-Elsinore_fault-north-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-JULN-Elsinore_fault-south-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-east_branch-dipping-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-east_branch-dipping-splay-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-north-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-south-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-west_branch-center-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-west_branch-deep_splay-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-west_branch-east-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-LGSD-Laguna_Salada_fault-west_branch-west-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-SRCP-Borrego_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-SRCP-Paso_Inferior_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-SRCP-Paso_Superior_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-SRCP-Pescadores_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-SRCP-Sierra_Cucapah_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-TMCL-Wildomar_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-TMCL-Willard_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-WHIT-East_Montebello_fault-CFM3.x3d"></inline>
+<inline url="PNRA-ELSZ-WHIT-Whittier_Heights_fault-CFM1.x3d"></inline>
+<inline url="PNRA-ELSZ-WHIT-Whittier_fault-CFM4.x3d"></inline>
+<inline url="PNRA-ELSZ-WHIT-Workman_Hill_fault-CFM1.x3d"></inline>
+<inline url="PNRA-ELSZ-YUHA-Sierra_Cucapah_fault-NW_splay-CFM5.x3d"></inline>
+<inline url="PNRA-ELSZ-YUHA-Sierra_Cucapah_fault-blind-north-CFM5.x3d"></inline>
+<inline url="PNRA-NIRC-LABS-Newport-Inglewood_fault-split-CFM2.x3d"></inline>
+<inline url="PNRA-NIRC-OCNS-Newport-Inglewood_fault-RC_link-CFM2.x3d"></inline>
+<inline url="PNRA-NIRC-OFFS-Newport-Inglewood_fault-CFM2.x3d"></inline>
+<inline url="PNRA-NIRC-RSCN-Rose_Canyon_fault-CFM2.x3d"></inline>
+<inline url="PNRA-SJFZ-ANZA-Buck_Ridge_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-ANZA-Clark_fault-north-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-ANZA-Clark_fault-south-east-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-ANZA-Clark_fault-south-main-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-ANZA-Clark_fault-south-west-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-ANZA-Clark_fault-south-west-link-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-ANZA-Hot_Springs-Buck_Ridge_link-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-BRMT-Coyote_Creek_blind_fault-northeast-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-BRMT-Coyote_Creek_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-CYTC-Coyote_Creek_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-CYTC-Coyote_Creek_fault-center-east_splay-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-IMPV-Dixieland_fault-CFM5.x3d"></inline>
+<inline url="PNRA-SJFZ-IMPV-Weinert_El_Centro_fault-CFM5.x3d"></inline>
+<inline url="PNRA-SJFZ-IMPV-Weinert_Superstition_Hills_link-CFM5.x3d"></inline>
+<inline url="PNRA-SJFZ-SBRN-Glen_Helen_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SBRN-Loma_Linda_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SBRN-Lytle_Creek_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SBRN-Rialto-Colton_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SBRN-San_Jacinto-Claremont_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SJCV-Casa_Loma_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SJCV-Claremont_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SJCV-Hot_Springs_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SJCV-Hot_Springs_fault-west-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SJCV-San_Jacinto-Claremont_fault-east-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SSHS-Superstition_Hills_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SSMT-Superstition_Mountain_fault-CFM4.x3d"></inline>
+<inline url="PNRA-SJFZ-SSMT-West_Mesa_fault-CFM5.x3d"></inline>
+<inline url="SAFS-MHFZ-LSBM-Berdoo_Canyon_fault-CFM4.x3d"></inline>
+<inline url="SAFS-MHFZ-LSBM-Indio_Hills_fault-CFM4.x3d"></inline>
+<inline url="SAFS-MHFZ-MCHS-Hidden_Springs_fault-CFM4.x3d"></inline>
+<inline url="SAFS-MHFZ-MCHS-Mecca_Hills_fault-CFM4.x3d"></inline>
+<inline url="SAFS-MHFZ-MCHS-Painted_Canyon_fault-CFM4.x3d"></inline>
+<inline url="SAFS-MHFZ-MULT-Mecca_Hills-Hidden_Springs_fault-deep-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-BSZS-Southern_San_Andreas_blind_extension-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-CLCZ-San_Andreas_fault-CHLM-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-CLCZ-San_Andreas_fault-CRRZ-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-COAV-Mission_Creek_fault_strand-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-COAV-North_Palm_Springs_fault-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-COAV-Southern_San_Andreas_fault-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-MJVS-San_Andreas_fault-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-MULT-Banning_fault_strand-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-MULT-Garnet_Hill_fault_strand-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-PARK-San_Andreas_fault-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-SBMT-Mill_Creek_fault_strand-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-SBMT-Mission_Creek_fault_strand-steep-CFM4.x3d"></inline>
+<inline url="SAFS-SAFZ-SBMT-San_Andreas_fault-CFM4.x3d"></inline>
+<inline url="SAFS-SGPR-CHFZ-Casa_Blanca_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-CHFZ-Chicken_Hill_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-CHFZ-Live_Oak_Canyon_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-CHFZ-Redlands_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-CHFZ-Reservoir_Canyon_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-CHFZ-Western_Heights_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-DTMT-San_Gorgonio_Pass_deep_detachment-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-DTMT-San_Gorgonio_Pass_midcrust_detachment-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-SBRN-Del_Rosa_cross_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-SBRN-San_Bernardino_cross_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-SGPS-San_Gorgonio_Pass_thrust-CFM4.x3d"></inline>
+<inline url="SAFS-SGPR-SJMT-Palm_Springs_blind_fault-CFM4.x3d"></inline>
+<inline url="SAFS-SGPR-SJMT-Potatochip1_blind_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-SJMT-Potatochip2_blind_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-SJMT-Potatochip4_blind_fault-CFM5.x3d"></inline>
+<inline url="SAFS-SGPR-SJMT-Potatochip5_blind_fault-CFM5.x3d"></inline>
+<inline url="SALT-BRSZ-BRFZ-Brawley_fault-CFM5.x3d"></inline>
+<inline url="SALT-CPFZ-CRPR-Cierro_Prieto_fault-CFM1.x3d"></inline>
+<inline url="SALT-CRSF-IMPV-Elmore_Ranch_fault-CFM1.x3d"></inline>
+<inline url="SALT-CRSF-IMPV-Extra_fault-CFM3.x3d"></inline>
+<inline url="SALT-CRSF-IMPV-Westmorland_fault-main-CFM4.x3d"></inline>
+<inline url="SALT-CRSF-IMPV-Westmorland_fault-splay-CFM4.x3d"></inline>
+<inline url="SALT-IMFZ-IMPV-Imperial_fault-Edip-Nend-CFM5.x3d"></inline>
+<inline url="SALT-IMFZ-IMPV-Imperial_fault-east-strand-south-CFM5.x3d"></inline>
+<inline url="SALT-IMFZ-IMPV-Imperial_fault-east_strand-north-CFM5.x3d"></inline>
+<inline url="SALT-IMFZ-IMPV-Imperial_fault-north_end-CFM5.x3d"></inline>
+<inline url="SNFA-AHTC-ASHH-Ash_Hill_fault-CFM2.x3d"></inline>
+<inline url="SNFA-AHTC-TANK-Tank_Canyon_fault-CFM2.x3d"></inline>
+<inline url="SNFA-HMFZ-MULT-Hunter_Mountain_fault-CFM1.x3d"></inline>
+<inline url="SNFA-LLFZ-CNTR-Little_Lake_fault-CFM1.x3d"></inline>
+<inline url="SNFA-OWFZ-1872-Owens_Valley_fault_rupture-CFM1.x3d"></inline>
+<inline url="SNFA-PMVZ-MULT-Panamint_Valley_fault-steep-CFM2.x3d"></inline>
+<inline url="SNFA-SNFZ-INDP-Independance_fault-CFM1.x3d"></inline>
+<inline url="SNFA-SNFZ-MULT-Independance-Sierra_Nevada_fault-CFM1.x3d"></inline>
+<inline url="WTRA-MRFS-MULT-Mission_Ridge-Arroyo_Parida_fault-dip-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-MULT-Southern_San_Cayetano-Ventura-Pitas_Point_fault-ramp_flat-HBRD-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-MULT-Southern_San_Cayetano-Ventura-Pitas_Point_fault-steep-JHAP-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-NCPP-North_Channel_fault-SRLN-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-PPTV-Pitas_Point_fault-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-PPTV-Pitas_Point_fault-HBRD-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-PPTV-Ventura-Pitas_Point_fault-link-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-RDMT-Red_Mountain_fault-east-CFM5.x3d"></inline>
+<inline url="WTRA-NCVS-VNTB-Ventura_fault-CFM5.x3d"></inline>
+<inline url="WTRA-ORFZ-OFFS-Mid-Channel_fault-SRLN-CFM4.x3d"></inline>
+<inline url="WTRA-ORFZ-OFFS-Oak_Ridge_fault-MRSH-CFM5.x3d"></inline>
+<inline url="WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2.x3d"></inline>
+<inline url="WTRA-ORFZ-VNTB-Oak_Ridge_fault-MRSH-CFM5.x3d"></inline>
+<inline url="WTRA-PHTS-COYT-Puente_Hills_Thrust_fault-CFM2.x3d"></inline>
+<inline url="WTRA-PHTS-LABS-Las_Cienagas_fault-truncated-CFM1.x3d"></inline>
+<inline url="WTRA-PHTS-LABS-Puente_Hills_thrust_fault-CFM1.x3d"></inline>
+<inline url="WTRA-PHTS-LABS-San_Vicente_fault-CFM1.x3d"></inline>
+<inline url="WTRA-PHTS-LABS-Upper_Elysian_Park_fault-CFM1.x3d"></inline>
+<inline url="WTRA-PHTS-PRTH-Peralta_Hills_fault-CFM1.x3d"></inline>
+<inline url="WTRA-PHTS-RICH-Puente_Hills_thrust_fault-CFM2.x3d"></inline>
+<inline url="WTRA-PHTS-STFS-Puente_Hills_thrust_fault-CFM2.x3d"></inline>
+<inline url="WTRA-SBTS-ANCP-Anacapa-Dume_fault-CFM3.x3d"></inline>
+<inline url="WTRA-SBTS-MULT-Channel_Islands_thrust_fault-SHAW-CFM1.x3d"></inline>
+<inline url="WTRA-SBTS-SMNB-Santa_Monica_Bay_fault-CFM3.x3d"></inline>
+<inline url="WTRA-SCFZ-MULT-San_Cayetano_fault-60dip-CFM5.x3d"></inline>
+<inline url="WTRA-SCFZ-SCVA-Del_Valle_fault-CFM1.x3d"></inline>
+<inline url="WTRA-SCFZ-SCVA-Holser_fault-CFM1.x3d"></inline>
+<inline url="WTRA-SFFS-ANCP-Malibu_Coast_fault-west-steep-alt2-CFM5.x3d"></inline>
+<inline url="WTRA-SFFS-LABS-Hollywood_fault-CFM5.x3d"></inline>
+<inline url="WTRA-SFFS-LABS-North_Salt_Lake_blind_fault-CFM3.x3d"></inline>
+<inline url="WTRA-SFFS-SGVS-Raymond_fault-extended-CFM5.x3d"></inline>
+<inline url="WTRA-SFFS-SMMT-Malibu_Coast_fault-east-steep-alt2-CFM5.x3d"></inline>
+<inline url="WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5.x3d"></inline>
+<inline url="WTRA-SFFS-SNCZ-Santa_Cruz_Island_fault-CFM5.x3d"></inline>
+<inline url="WTRA-SFFS-SNRS-Santa_Rosa_Island_fault-CFM5.x3d"></inline>
+<inline url="WTRA-SFNS-MSNH-Mission_Hills_fault-CFM4.x3d"></inline>
+<inline url="WTRA-SFNS-SFNV-Northridge_Hills_fault-truncated-CFM3.x3d"></inline>
+<inline url="WTRA-SFNS-SFNV-San_Fernando_fault-CFM4.x3d"></inline>
+<inline url="WTRA-SFNS-VRDM-Eagle_Rock_fault-steep-CFM5.x3d"></inline>
+<inline url="WTRA-SFNS-VRDM-Verdugo_fault-steep-CFM5.x3d"></inline>
+<inline url="WTRA-SGFZ-BTJG-San_Gabriel_splay-CFM4.x3d"></inline>
+<inline url="WTRA-SGFZ-MULT-Southern_San_Gabriel_fault-CFM4.x3d"></inline>
+<inline url="WTRA-SGFZ-PLMS-Northern_San_Gabriel_fault-CFM4.x3d"></inline>
+<inline url="WTRA-SGMF-SANC-San_Antonio_Canyon_fault-CFM4.x3d"></inline>
+<inline url="WTRA-SLCZ-SPMT-Lion_Canyon_fault-HBRD-CFM5.x3d"></inline>
+<inline url="WTRA-SMFZ-CCMG-Cucamonga_fault-CFM4.x3d"></inline>
+<inline url="WTRA-SMFZ-CCMG-Cucamonga_fault-alt1-CFM4.x3d"></inline>
+<inline url="WTRA-SMFZ-CSPC-Clamshell_Sawpit_Canyon_fault-CFM4.x3d"></inline>
+<inline url="WTRA-SMFZ-MULT-Sierra_Madre_fault-west-CFM4.x3d"></inline>
+<inline url="WTRA-SMFZ-SMCC-Sierra_Madre_fault-low-dip-CFM4.x3d"></inline>
+<inline url="WTRA-SMFZ-SMDD-Sierra_Madre_fault-low-dip-CFM4.x3d"></inline>
+<inline url="WTRA-SMFZ-SMDE-Sierra_Madre-Cucamonga_connector-CFM4.x3d"></inline>
+<inline url="WTRA-SMFZ-SMDE-Sierra_Madre_fault-low-dip-CFM4.x3d"></inline>
+<inline url="WTRA-SSFZ-MULT-Santa_Susana_fault-CFM1.x3d"></inline>
+<inline url="WTRA-SSRZ-MULT-Simi-Santa_Rosa_fault-listric-CFM5.x3d"></inline>
+<inline url="WTRA-SSRZ-OXNP-Bailey_fault-steep-CFM5.x3d"></inline>
+<inline url="WTRA-SYFZ-MULT-Santa_Ynez_fault-60dip-CFM5.x3d"></inline>
+<inline url="WTRA-USAV-INDH-Indian_Hill_fault-CFM5.x3d"></inline>
+<inline url="WTRA-USAV-SNJH-San_Jose_fault-CFM5.x3d"></inline>
+<inline url="WTRA-USAV-UPLD-Upland_fault-dipslip-CFM1.x3d"></inline>
+<inline url="WTRA-USAV-WLNC-Walnut_Creek_fault-CFM5.x3d"></inline>
+-->
+    </Scene>
+  <button id="enterVR" onclick="enterVR();"></button>  
+</x3d>
+  <div id='hud'>
+    <p>Threshold: <span id="isotext"></span> m/s</p>
+    <input id="iso" type="range" min="-0.001" max="1" step="0.001" ></input>
+    
+    <p>Color min.: <span id="mintext">800</span> m/s</p>
+    <input id="min" type="range" min="0" max="1" step="0.001" value="0"></input>
+    
+    <p>Color max.: <span id="maxtext">7200</span> m/s</p>
+    <input id="max" type="range" min="0" max="1" step="0.001" value="0.9"></input>
+    
+    <p>Intensity:</p>
+    <input id="af" type="range" min="0" max="1" step="0.01" ></input>
+    
+    <p>Section azimuth: <span id="ocptext"></span>&deg</p>
+    <input id="ocp" type="range" min="0" max="361" step="1" ></input>
+    
+    <p>Section Position:</p>
+    <input id="mcp" type="range" min="0" max="1" step="0.01" ></input>
+    
+    <p>vertical scale: <span id="vetext">1</span></p>
+    <input id="ve" type="range" min="-4" max="4" step="0.125" ></input>
+  </div>
+  
+</div>
+  <script type="text/javascript">
+    start();
+    function start() {
+            //document.getElementById("deptex").setAttribute("dimensions", w.substring(0, w.length-2) + " " + h.substring(0, h.length-2) + " 4");
+            var volStyle = document.getElementById("vs");
+            var volTrafo = document.getElementById("volTrafo");
+            var minEl = document.getElementById("min");
+            var maxEl = document.getElementById("max");
+            var isotextEl = document.getElementById("isotext");
+            var mintextEl = document.getElementById("mintext");
+            var maxtextEl = document.getElementById("maxtext");
+            var minbartextEl = document.getElementById("minbartext");
+            var maxbartextEl = document.getElementById("maxbartext");
+            var midbartextEl = document.getElementById("midbartext");
+            var ocptextEl = document.getElementById("ocptext");
+            var vetextEl = document.getElementById("vetext");
+            var velscale = 8000;
+            var midbarVal;
+            
+            document.getElementById("iso").oninput = (function() {
+                volStyle.setAttribute("isoSurfaceCutoffValue", this.value);
+                isotextEl.textContent = this.value * velscale;
+            });
+            
+            minEl.oninput = (function() {
+                if ( this.value > maxEl.value) { maxEl.value = this.value + 0.01;} 
+                volStyle.setAttribute("intensityLimits", this.value + " " + maxEl.value);
+                mintextEl.textContent = this.value * velscale;
+                minbartextEl.setAttribute("string", this.value * velscale);
+                midbarVal = (1.0 * maxtextEl.textContent + this.value * velscale) / 2;
+                midbartextEl.setAttribute("string", Math.round(midbarVal));
+            });
+            
+            maxEl.oninput = (function() {
+                if ( this.value < minEl.value) { minEl.value = this.value - 0.01;} 
+                volStyle.setAttribute("intensityLimits", minEl.value + " " + this.value);
+                maxtextEl.textContent = this.value * velscale;
+                maxbartextEl.setAttribute("string", this.value * velscale);
+                midbarVal = (this.value * velscale + 1.0 * mintextEl.textContent) / 2;
+                midbartextEl.setAttribute("string", Math.round(midbarVal));
+            });
+            
+            document.getElementById("af").oninput = (function() {
+                volStyle.setAttribute("accumFactor", this.value);
+            });
+            
+            document.getElementById("mcp").oninput = (function() {
+                volStyle.setAttribute("xSectionPosition", this.value);
+            });
+            
+            document.getElementById("ocp").oninput = (function() {
+                var angle = this.value * Math.PI/180;
+                var xo = Math.cos(angle) + " " + Math.sin(angle) + " 0 1.5708";
+                var azi = (this.value * 1.0 + 90.0) % 180;
+                if (angle > 2 * Math.PI) {
+                  xo = "1 0 0 3.141592";
+                  azi = "horizontal";}
+                volStyle.setAttribute("xSectionOrientation", xo);
+                ocptextEl.textContent = azi;
+            });
+            
+            document.getElementById("ve").oninput = (function() {
+                var zscale = Math.pow(2, this.value);
+                volTrafo.setAttribute("scale", "1 1 " + zscale);
+                vetextEl.textContent = zscale.toPrecision(5);
+            });
+            
+    }
+    
+    var runtime = null;
+    var rtLeft, rtRight;
+    var lastW, lastH;
+
+    var vrHMD = null, vrSensor = null;
+
+    document.onload = function ()
+    {
+        runtime = document.getElementById('x3dscene').runtime;
+        rtLeft = document.getElementById('rtLeft');
+        rtRight = document.getElementById('rtRight');
+
+        lastW = +runtime.getWidth();
+        lastH = +runtime.getHeight();
+
+        var hw = Math.round(lastW / 2);
+        rtLeft.setAttribute('dimensions',  hw + ' ' + lastH + ' 4');
+        rtRight.setAttribute('dimensions', hw + ' ' + lastH + ' 4');
+        
+        //var vp_bound = runtime.getActiveBindable('viewpoint');
+        
+        var vp_pos = { }; // save initial vp
+        var vp_ori = { };
+        var vp_ori_matrix = { };
+
+        vp1 = document.getElementById('vp1');
+        vp1.addEventListener("viewpointChanged", view_changed, false);
+        vp2 = document.getElementById('vp2');
+        vp2.addEventListener("viewpointChanged", view_changed, false);
+        
+        vp_pos[vp1.id] = vp1.getFieldValue('position');
+        vp_ori[vp1.id] = vp1.getFieldValue('orientation'); // as quaternion
+        vp_ori_matrix[vp1.id] = vp1.getFieldValue('orientation').toMatrix(); // as matrix
+        vp_pos[vp2.id] = vp2.getFieldValue('position');
+        vp_ori[vp2.id] = vp2.getFieldValue('orientation'); // as quaternion
+        vp_ori_matrix[vp2.id] = vp2.getFieldValue('orientation').toMatrix(); // as matrix        
+        //determine scale factor for head movement
+        //assume distance between viewpoints is representative of scene size
+        var dst = vp_pos[vp1.id].subtract(vp_pos[vp2.id]);
+        //scale so that 1m head movement corresponds to distance;
+        var giant_factor = dst.length() / 1.0;
+        
+        var old_vp = runtime.getActiveBindable('viewpoint');
+        var vp_id = old_vp.getAttribute("id");
+        //var vpori = vp1ori;
+        //var vppos = vp1pos;
+        //var vp_by_vr = false;
+        
+        var initDone = false;
+        
+        window.addEventListener("keypress", onkey, true); //may have to scope to div
+        
+        //github.com/MozVR examples provide this for resetting position
+        function onkey(event) {
+        
+	    if (!(event.metaKey || event.altKey || event.ctrlKey)) {
+				event.preventDefault();
+			}
+	    if (event.charCode == 'z'.charCodeAt(0)) { // z
+	    	if (vrSensor) {vrSensor.resetSensor();};
+	        }
+        }
+        
+        function view_changed(e) {
+            var new_vp = runtime.getActiveBindable('viewpoint');
+            if (old_vp == new_vp) {return false;}
+            //if (vp_by_vr) {return false;}
+            //vppos = e.position;
+            //vpori = x3dom.fields.Quaternion.axisAngle(e.orientation[0], e.orientation[1]); // to quaternion from axis-angle
+            //vp_bound = runtime.getActiveBindable('viewpoint');
+            old_vp = new_vp;
+            vp_id = old_vp.getAttribute("id");
+            console.log("active Viewpoint: " + old_vp.getAttribute("id"));
+            //or e.target.getFieldValue
+        };
+
+        runtime.enterFrame = function () {
+            //vp_by_vr = false;
+            if (!vrSensor)
+                return;
+            var state = vrSensor.getState();
+
+            if (!initDone) {
+                console.log(state);
+            }
+
+  		    if (state.orientation !== null) {
+			
+				var h = state.orientation;
+				var q = new x3dom.fields.Quaternion(h.x, h.y, h.z, h.w); // new for every frame ?
+        
+                //multiply with initial viewpoint orientation 
+				var aa = vp_ori[vp_id].multiply(q).toAxisAngle();
+				//console.log(aa[0].x + " " + aa[0].y + " " + aa[0].z + " " + aa[1]);
+                //vp_by_vr = true;
+                // not sure why not request, release
+				old_vp.setAttribute("orientation", aa[0].x + " " + aa[0].y + " " + aa[0].z + " " + aa[1]); // triggers viewpointchanged event
+				
+			}
+
+			if (state.position !== null) {
+			
+				var posi = old_vp.requestFieldRef('position');
+				
+                //multiply head position with initial viewpoint orientation to align
+    			
+                var aligned_head_position = new x3dom.fields.SFVec3f(state.position.x, state.position.y, state.position.z);
+                
+                aligned_head_position = vp_ori_matrix[vp_id].multMatrixVec(aligned_head_position.multiply(giant_factor));
+                
+                //var posi_new = vp_pos[vp_id].addScaled(state.position, giant_factor); // returns new instance
+                
+                posi.x = vp_pos[vp_id].x + aligned_head_position.x;
+                posi.y = vp_pos[vp_id].y + aligned_head_position.y;
+                posi.z = vp_pos[vp_id].z + aligned_head_position.z;
+                
+                //posi.x = posi_new.x; // assign to reference
+				//posi.y = posi_new.y;
+				//posi.z = posi_new.z;
+                
+                //vp_by_vr = true;
+				old_vp.releaseFieldRef('position'); // triggers viewpointchanged event
+				
+			}
+        };
+
+        runtime.exitFrame = function ()
+        {
+            var w = +runtime.getWidth() * 2;
+            var h = +runtime.getHeight() * 2;
+
+            if (w != lastW || h != lastH)
+            {
+                var half = Math.round(w / 2);
+                rtLeft.setAttribute('dimensions',  half + ' ' + h + ' 4');
+                rtRight.setAttribute('dimensions', half + ' ' + h + ' 4');
+
+                console.log(w + ", " + h);
+
+                lastW = w;
+                lastH = h;
+            }
+
+            if (!initDone) {
+                initDone = true;
+            }
+
+            runtime.triggerRedraw();
+        };
+
+    };
+    
+    function enterVR()
+    {
+        if(vrHMD) {
+        
+            var canvas = document.getElementsByTagName("canvas")[0];
+            //var canvas = document.getElementById("frame");
+            if (canvas.webkitRequestFullscreen) {
+                canvas.webkitRequestFullscreen({ vrDisplay: vrHMD });
+            } else if (canvas.mozRequestFullScreen) {
+                canvas.mozRequestFullScreen({ vrDisplay: vrHMD });
+            }
+            //shift focus to element to enable keyboard
+            canvas.setAttribute("tabIndex", -1); //setting tabindex allow focusing
+            canvas.focus();
+        }
+    }
+
+	/* ----------------------------------------------------------- */
+	function vrDeviceCallback(vrdevs) {
+        var i;
+
+	    // First, find a HMD -- just use the first one we find
+	    for (i = 0; i < vrdevs.length; ++i) {
+	        if (vrdevs[i] instanceof HMDVRDevice) {
+	            vrHMD = vrdevs[i];
+	            console.log(vrHMD);
+	            break;
+	        }
+	    }
+
+	    if (!vrHMD)
+	        return;
+
+	    // Then, find that HMD's position sensor
+	    for (i = 0; i < vrdevs.length; ++i) {
+	        if (vrdevs[i] instanceof PositionSensorVRDevice &&
+                vrdevs[i].hardwareUnitId == vrHMD.hardwareUnitId) {
+	            vrSensor = vrdevs[i];
+	            console.log(vrSensor);
+	            break;
+	        }
+	    }
+
+	    if (!vrHMD || !vrSensor) {
+	        alert("Didn't find a HMD and sensor!");
+	        return;
+	    }
+
+	    var leftEyeParams, 
+		    rightEyeParams, 
+			leftFOV, 
+			rightFOV, 
+			leftTranslation, 
+			rightTranslation;
+		
+		
+		if (vrHMD.getEyeParameters !== undefined) {
+			leftEyeParams = vrHMD.getEyeParameters("left");
+			rightEyeParams = vrHMD.getEyeParameters("right");
+			
+			console.log(leftEyeParams);
+			console.log(rightEyeParams);
+					
+			leftFOV = leftEyeParams.currentFieldOfView;
+			rightFOV = rightEyeParams.currentFieldOfView;
+
+			console.log(leftFOV);
+			console.log(rightFOV);
+
+			leftTranslation = leftEyeParams.eyeTranslation;
+			rightTranslation = rightEyeParams.eyeTranslation;
+
+			console.log(leftTranslation);
+			console.log(rightTranslation);
+		} else {
+			leftFOV = vrHMD.getCurrentEyeFieldOfView("left");
+			rightFOV = vrHMD.getCurrentEyeFieldOfView("right");
+
+			console.log(leftFOV);
+			console.log(rightFOV);
+
+			leftTranslation = vrHMD.getEyeTranslation("left");
+			rightTranslation = vrHMD.getEyeTranslation("right");
+
+			console.log(leftTranslation);
+			console.log(rightTranslation);
+		}
+	}
+
+    if (navigator.getVRDevices())
+	    navigator.getVRDevices().then(vrDeviceCallback);
+
+    //http://blog.tojicode.com/2014/07/bringing-vr-to-chrome.html
+    //http://blog.bitops.com/blog/2014/08/20/updated-firefox-vr-builds/
+  </script>
+    
+  </body>
+</html>
