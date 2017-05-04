@@ -137,10 +137,10 @@
                 </Billboard>
                 <Transform id='volTrafo' translation='23125 -4600 24500' rotation='1 0 0 1.5707' scale='1 1 1'>
                 <VolumeData dimensions='46250.0 49000.0 10000.0' allowViewpointInside='true'>
-                  <ImageTextureAtlas id="ita" containerField="voxels" url="grid.png" numberOfSlices="100" slicesOverX="10" slicesOverY="10">
+                  <ImageTextureAtlas crossOrigin='anonymous' id="ita" containerField="voxels" url="grid.png" numberOfSlices="100" slicesOverX="10" slicesOverY="10">
                   </ImageTextureAtlas>
                   <RadarVolumeStyle id="vs" DEF="VOLREN3D" accumFactor='0.5' isoSurfaceCutoffValue="-0.1" transparency="1.0" intensityLimits="0.1 0.8" renderMode="2" xSectionPosition="0.5">
-                    <ImageTexture containerField='transferFunction' url='rainbow.png'></ImageTexture>
+                    <ImageTexture crossOrigin='anonymous' containerField='transferFunction' url='rainbow.png'></ImageTexture>
                       <!--RenderedTexture id="deptex" containerField='depthTexture' update="always" dimensions="800 600 4" depthMap="true">
                         <Viewpoint USE="vp"></Viewpoint>
                           <Background USE="bg"></Background>
