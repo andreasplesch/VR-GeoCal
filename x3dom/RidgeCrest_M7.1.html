@@ -309,6 +309,7 @@
 <inline url="CFM5/SALT-IMFZ-IMPV-Imperial_fault-east_strand-north-CFM5.x3d"></inline>
 <inline url="CFM5/SALT-IMFZ-IMPV-Imperial_fault-north_end-CFM5.x3d"></inline>
 -->
+<inline url="CFM5/SNFA-ALFZ-COSO-Airport_Lake_fault-CFM5.x3d"></inline>
 <inline url="CFM5/SNFA-AHTC-ASHH-Ash_Hill_fault-CFM2.x3d"></inline>
 <inline url="CFM5/SNFA-AHTC-TANK-Tank_Canyon_fault-CFM2.x3d"></inline>
 <inline url="CFM5/SNFA-HMFZ-MULT-Hunter_Mountain_fault-CFM1.x3d"></inline>
@@ -397,43 +398,83 @@
     var eqApp=document.createElement('Appearance');
     var eqMat=document.createElement('Material');
     eqMat.setAttribute('diffuseColor','0 1 1');
-    eqMat.setAttribute('transparency','0.2');
+    eqMat.setAttribute('transparency','0.1');
     
     eqApp.appendChild(eqMat);
     eqShape.appendChild(eqApp);
-    eqGeoSphere=document.createElement('Box');
-    //eqGeoCoords=document.createElement('geoCoordinate');
-    eqShape.appendChild(eqGeoSphere);
-    const xmin = -130, xmax = -100, ymin = 20, ymax = 50;
+    //eqGeo=document.createElement('Box');
+    eqGeo=document.createElement('IndexedFaceSet');
+    eqGeo.setAttribute('solid','true');
+    eqGeoCoords=document.createElement('geoCoordinate');
+    eqGeo.appendChild(eqGeoCoords);
+    eqShape.appendChild(eqGeo);
+    const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
 
     d3.json('https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson').then(function(data){
-        let counter = 0;
+        let counter = 0, index = 0, coordindex="", km2deg = 1/110, point="";
         data.features.forEach((d, i) => {
             let c=d.geometry.coordinates;
             if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
             document.querySelector('#faultInfo').textContent=data.features.length+" earthquakes, processed: " + ++counter;
-            let geoLoc=document.createElement('GeoLocation');
-            geoLoc.setAttribute('geoCoords',[c[1],c[0],-1000*c[2]].join());
-            let t=document.createElement('Transform');
+            //let geoLoc=document.createElement('GeoLocation');
+            //geoLoc.setAttribute('geoCoords',[c[1],c[0],-1000*c[2]].join());
+            //let t=document.createElement('Transform');
             let mag=d.properties.mag;
             //Length = 10^(-3.55+0.74*Mag)
-            let length=Math.max(0.2, Math.pow(10,-3.22 + 0.69*mag))*1000;
+            let length=Math.max(0.5, Math.pow(10,-3.22 + 0.69*mag));//*1000;
             //let area=Math.max(1, Math.pow(10,-3.42 + 0.90*mag)*1000*1000);
-            let area=(mag < 6.71 ? Math.pow(10, -3.98 + mag) : Math.pow(10, 0.75*(-3.07 + mag)))*1000*1000;
-            
+            let area=(mag < 6.71 ? Math.pow(10, -3.98 + mag) : Math.pow(10, 0.75*(-3.07 + mag)));//*1000*1000;
+            let rotation = new x3dom.fields.SFMatrix4f.rotationZ(azi);
+            let translation = new x3dom.fields.SFMatrix4f.translation(new x3dom.fields.SFVec3f(c[0],c[1],-1000*c[2]));
+            let w=km2deg*widthkm, l=km2deg*length/2, h=1000*0.5*area/length;
+            let minA=translation.mult(rotation).multMatrixPnt(
+             new x3dom.fields.SFVec3f(-w, -l, -h));
+            let minB=translation.mult(rotation).multMatrixPnt(
+             new x3dom.fields.SFVec3f(w, -l, -h));
+            let maxA=translation.mult(rotation).multMatrixPnt(
+             new x3dom.fields.SFVec3f(-w, l, h));
+            let maxB=translation.mult(rotation).multMatrixPnt(
+             new x3dom.fields.SFVec3f(w, l, h));
             //let scale=mag*mag*1000/2;
-            t.setAttribute('scale', [0.5*length, 0.5*area/length, 200].join());
-            t.setAttribute('rotation', '0 1 0 -0.83');
+            //t.setAttribute('scale', [0.5*length, 0.5*area/length, 200].join());
+            //t.setAttribute('rotation', '0 1 0 -0.83');
+            point += [minA.y, minA.x, minA.z].join()+" ";
+            point += [minA.y, minA.x, maxA.z].join()+" ";
+            point += [maxA.y, maxA.x, maxA.z].join()+" ";
+            point += [maxA.y, maxA.x, minA.z].join()+" ";
             
-            let s=document.createElement('Shape');
-            s.setAttribute('USE', 'hypo');
-            t.appendChild(i==0 ? eqShape : s);
-            geoLoc.appendChild(t);
-            eqGroup.appendChild(geoLoc);
+            point += [minB.y, minB.x, minB.z].join()+" ";
+            point += [maxB.y, maxB.x, minB.z].join()+" ";
+            point += [maxB.y, maxB.x, maxB.z].join()+" ";
+            point += [minB.y, minB.x, maxB.z].join()+" ";
+            
+            point += [minA.y, minA.x, minA.z].join()+" ";
+            point += [maxA.y, maxA.x, minA.z].join()+" ";
+            point += [maxB.y, maxB.x, minB.z].join()+" ";
+            point += [minB.y, minB.x, minB.z].join()+" ";
+            
+            point += [minA.y, minA.x, maxA.z].join()+" ";
+            point += [minB.y, minB.x, maxB.z].join()+" ";
+            point += [maxB.y, maxB.x, maxB.z].join()+" ";
+            point += [maxA.y, maxA.x, maxA.z].join()+" ";
+            
+            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+
+//             let s=document.createElement('Shape');
+//             s.setAttribute('USE', 'hypo');
+//             t.appendChild(i==0 ? eqShape : s);
+//             geoLoc.appendChild(t);
+//             eqGroup.appendChild(geoLoc);
         })
-//         eqGeoCoords.setAttribute('point', 
+
+        eqGeoCoords.setAttribute('point', point);  
 //             data.features.map(d => {let c=d.geometry.coordinates;return [c[1],c[0],-c[2]*1000]}).join()
 //         );
+        eqGeo.setAttribute('coordIndex', coordindex);
+        eqGroup.appendChild(eqShape);
         document.querySelector('Scene').appendChild(eqGroup);
         document.querySelector('#faultInfo').textContent=counter+" earthquakes displayed";  
     })
