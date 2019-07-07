@@ -4,8 +4,9 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
     <meta charset="utf-8">
     <title>CFM and the RidgeCrest M7.1 earthquake</title>
-    <link rel="stylesheet" type="text/css" href="x3dom.css">
+    <link rel="stylesheet" type="text/css" href="https://x3dom.org/download/dev/x3dom.css">
     <script type="text/javascript" src="https://x3dom.org/download/dev/x3dom-full.debug.js"></script>
+    <script src="//d3js.org/d3.v5.min.js"></script>
     <style>
       #x3dscene {
         background-color: black;
@@ -16,24 +17,22 @@
       }
     </style>
 </head>
-<body>
+<body onload='init()'>
   <h3>CFM</h3>
   
-<p>Use controls below to slice and adjust colors.</p>
+<p>The M6.4 and M7.1 Ridgcrest sequence</p>
 <div id="frame">
-<x3d id="x3dscene">
+<x3d id="x3dscene" primitiveQuality='Medium'>
     <param name="showLog" value="false"></param>
     <param name="showStat" value="false"></param>
     <Scene>
-        <Viewpoint position="-2475720.39785 -4737890.91375 3502518.52025" orientation="0.97492 -0.14440 0.16937 2.06456" zNear="139.91409" zFar="1399140.91219" centerofRotation="-2485280.716014316 -4664317.061311953 3538022.202066815" description="default"></Viewpoint>
+        <GeoViewpoint position="35.76 -117.6 100000" orientation="1 0 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="default"></GeoViewpoint>
         <inline url="cal_outline.x3d"></inline>
         <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
-        <GeoLocation geoCoords='371052.25 3774000 400' geoSystem='"UTM" "Z11" "N" "CC" "easting_first"'>
-        </GeoLocation>
-        
+     
         
       <!-- add fault inlines here -->
-      
+     <!-- 
 <inline url="BNRA-BMFZ-MULT-Black_Mountain_fault-CFM3.x3d"></inline>
 <inline url="BNRA-NDVZ-MULT-Northern_Death_Valley_fault-CFM2.x3d"></inline>
 <inline url="BNRA-SDVZ-MULT-Southern_Death_Valley_fault-vertical-CFM3.x3d"></inline>
@@ -360,13 +359,55 @@
 <inline url="WTRA-USAV-SNJH-San_Jose_fault-CFM5.x3d"></inline>
 <inline url="WTRA-USAV-UPLD-Upland_fault-dipslip-CFM1.x3d"></inline>
 <inline url="WTRA-USAV-WLNC-Walnut_Creek_fault-CFM5.x3d"></inline>
+-->
     </Scene>
 </x3d>
 </div>
   <script type="text/javascript">
-    start();
-    function start() {
-            }
-  </script>
+  function init() {
+    var eqGroup=document.createElement('Group');
+    eqGroup.setAttribute('DEF','M7.1-RidgeCrestSequence');
+    
+    var eqShape=document.createElement('Shape');
+    eqShape.setAttribute('DEF','hypo');
+    var eqApp=document.createElement('Appearance');
+    var eqMat=document.createElement('Material');
+    eqMat.setAttribute('diffuseColor','0 1 1');
+    eqMat.setAttribute('transparency','0.5');
+    
+    eqApp.appendChild(eqMat);
+    eqShape.appendChild(eqApp);
+    eqGeoSphere=document.createElement('Box');
+    //eqGeoCoords=document.createElement('geoCoordinate');
+    eqShape.appendChild(eqGeoSphere);
+    const xmin = -130, xmax = -100, ymin = 20, ymax = 50;
+
+    d3.json('earthquakes/RidgeCrest070619_4pmEDT.geojson').then(function(data){
+        data.features.forEach((d, i) => {
+            let c=d.geometry.coordinates;
+            if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
+            let geoLoc=document.createElement('GeoLocation');
+            geoLoc.setAttribute('geoCoords',[c[1],c[0],-1000*c[2]].join());
+            let t=document.createElement('Transform');
+            let mag=d.properties.mag;
+            //Length = 10^(-3.55+0.74*Mag)
+            let scale=Math.max(0.1, Math.pow(10,-3.55+0.74*mag))*1000;
+            //let scale=mag*mag*1000/2;
+            t.setAttribute('scale', [scale/2, scale/6, 100].join());
+            t.setAttribute('rotation', '0 1 0 -0.8');
+            
+            let s=document.createElement('Shape');
+            s.setAttribute('USE', 'hypo');
+            t.appendChild(i==0 ? eqShape : s);
+            geoLoc.appendChild(t);
+            eqGroup.appendChild(geoLoc);
+        })
+//         eqGeoCoords.setAttribute('point', 
+//             data.features.map(d => {let c=d.geometry.coordinates;return [c[1],c[0],-c[2]*1000]}).join()
+//         );
+        document.querySelector('Scene').appendChild(eqGroup);
+    })
+  }
+   </script>
   </body>
 </html>
