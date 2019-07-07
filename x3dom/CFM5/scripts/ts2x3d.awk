@@ -24,5 +24,3 @@ END {
     print "  </Scene>"
     print "</X3D>"
 }
-    
-}
