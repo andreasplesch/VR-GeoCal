@@ -27,12 +27,12 @@
           opacity: 0.8;
           width: 100%;
           text-align: center;
-      style>
+      </style>
 </head>
 <body onload='init()' style='width:100%; height:100%; border:0; margin:0; padding:0; background: linear-gradient(Grey 0%, White 100%);'>
   
 <div id='info'>
-    <h3>The 2019 M6.4 and M7.1 Ridgecrest sequence</h3>
+    <h2>The 2019 M6.4 and M7.1 Ridgecrest sequence</h2>
     <div>
         <span id='faultInfo'>Fault Information</span>
     </div>
@@ -406,7 +406,7 @@
     eqShape.appendChild(eqGeoSphere);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50;
 
-    d3.json('earthquakes/RidgeCrest070619_4pmEDT.geojson').then(function(data){
+    d3.json('https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson').then(function(data){
         data.features.forEach((d, i) => {
             let c=d.geometry.coordinates;
             if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
