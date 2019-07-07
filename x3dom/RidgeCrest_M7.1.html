@@ -373,7 +373,7 @@
     var eqApp=document.createElement('Appearance');
     var eqMat=document.createElement('Material');
     eqMat.setAttribute('diffuseColor','0 1 1');
-    eqMat.setAttribute('transparency','0.5');
+    eqMat.setAttribute('transparency','0.2');
     
     eqApp.appendChild(eqMat);
     eqShape.appendChild(eqApp);
@@ -391,9 +391,9 @@
             let t=document.createElement('Transform');
             let mag=d.properties.mag;
             //Length = 10^(-3.55+0.74*Mag)
-            let scale=Math.max(0.1, Math.pow(10,-3.55+0.74*mag))*1000;
+            let scale=Math.max(0.2, Math.pow(10,-3.55+0.74*mag))*1000;
             //let scale=mag*mag*1000/2;
-            t.setAttribute('scale', [scale/2, scale/6, 100].join());
+            t.setAttribute('scale', [scale/2, scale/4, 200].join());
             t.setAttribute('rotation', '0 1 0 -0.8');
             
             let s=document.createElement('Shape');
