@@ -19,7 +19,6 @@
       }
       #info {
           position: absolute;
-          z-order:100;
           z-index: 100;
           color: white;
           font-family: monospace;
@@ -27,6 +26,32 @@
           opacity: 0.8;
           width: 100%;
           text-align: center;
+      }
+      #help {
+          margin-left: auto;
+          background-color: #062c2c;
+          position: absolute;
+          z-index: 200;
+          color: white;
+          font-family: fantasy;
+          font-size: 1em;
+          opacity: 0.5;
+          width: auto;
+          text-align: right;
+          padding: 10px;
+          right: 0px;
+      }
+      [id*=button] {
+          margin: 2px;
+          border-style: outset;
+          padding: 6px;
+          text-align: center;
+      }
+      [id*=button]:hover {
+          background: red
+      }
+
+
       </style>
 </head>
 <body onload='init()' style='width:100%; height:100%; border:0; margin:0; padding:0; background: linear-gradient(Grey 0%, White 100%);'>
@@ -37,12 +62,23 @@
         <span id='faultInfo'>Fault Information</span>
     </div>
 </div>
+<div id='help'>
+  <div id='mapbutton' onclick="setView('map')">MAP</div>
+  <div id='northbutton' onclick="setView('toNorth')">North</div>
+  <div id='southbutton' onclick="setView('toSouth')">South</div>
+  <div id='eastbutton' onclick="setView('toEast')">East</div>
+  <div id='westbutton' onclick="setView('toWest')">West</div>
+</div>
 <div id="frame">
 <x3d id="x3dscene" primitiveQuality='Medium'>
     <param name="showLog" value="false"></param>
     <param name="showStat" value="false"></param>
     <Scene>
-        <GeoViewpoint position="35.76 -117.6 100000" orientation="1 0 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="default"></GeoViewpoint>
+        <GeoViewpoint position="35.76 -117.6 100000" orientation="1 0 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="map"></GeoViewpoint>
+        <GeoViewpoint position="34.76 -117.6 5000" orientation="1 0 0 0" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toNorth"></GeoViewpoint>
+        <GeoViewpoint position="36.76 -117.6 5000" orientation="0 1 0 3.14" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toSouth"></GeoViewpoint>
+        <GeoViewpoint position="35.76 -118.6 5000" orientation="0 1 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toEast"></GeoViewpoint>
+        <GeoViewpoint position="35.76 -116.6 5000" orientation="0 1 0 1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toWest"></GeoViewpoint>
         <inline url="cal_outline.x3d"></inline>
         <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
      
@@ -486,7 +522,9 @@
       let name = e.target.getAttribute('DEF');
       document.querySelector('#faultInfo').textContent=name;
   }
-  
+  function setView(description) {
+      document.querySelector("Geoviewpoint[description="+description+"]").setAttribute('bind','true');
+  }  
    </script>
   </body>
 </html>
