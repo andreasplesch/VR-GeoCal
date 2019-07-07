@@ -4,7 +4,7 @@ $1 ~ "TRGL" { triangles[t++] = $2-1" "$3-1" "$4-1 }
 END {
     print "<X3D>"
     print "  <Scene>"
-    print "    <Shape DEF='"tsname[1]"'>"
+    print "    <Shape DEF='"tsname[2]"'>"
     print "      <Appearance>"
     print "        <Material diffuseColor='0 0.5 0.5'></Material>"
     print "      </Appearance>"
