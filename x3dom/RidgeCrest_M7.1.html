@@ -407,9 +407,11 @@
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50;
 
     d3.json('https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson').then(function(data){
+        let counter = 0;
         data.features.forEach((d, i) => {
             let c=d.geometry.coordinates;
             if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
+            document.querySelector('#faultInfo').textContent=data.features.length+" earthquakes, processed: " + ++counter;
             let geoLoc=document.createElement('GeoLocation');
             geoLoc.setAttribute('geoCoords',[c[1],c[0],-1000*c[2]].join());
             let t=document.createElement('Transform');
@@ -433,6 +435,7 @@
 //             data.features.map(d => {let c=d.geometry.coordinates;return [c[1],c[0],-c[2]*1000]}).join()
 //         );
         document.querySelector('Scene').appendChild(eqGroup);
+        document.querySelector('#faultInfo').textContent=counter+" earthquakes displayed";  
     })
   }
   function attachonclick(elements) {
