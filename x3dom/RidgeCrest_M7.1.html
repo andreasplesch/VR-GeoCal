@@ -13,14 +13,30 @@
         margin-left: auto;
         margin-right: auto;
         width: 100%;
-        height:  800px;
+        height:  100%;
+        /* position: absolute; */
+        margin: 0;
       }
-    </style>
+      #info {
+          position: absolute;
+          z-order:100;
+          z-index: 100;
+          color: white;
+          font-family: monospace;
+          font-size: large;
+          opacity: 0.8;
+          width: 100%;
+          text-align: center;
+      style>
 </head>
-<body onload='init()'>
-  <h3>CFM</h3>
+<body onload='init()' style='width:100%; height:100%; border:0; margin:0; padding:0; background: linear-gradient(Grey 0%, White 100%);'>
   
-<p>The M6.4 and M7.1 Ridgcrest sequence</p>
+<div id='info'>
+    <h3>The 2019 M6.4 and M7.1 Ridgecrest sequence</h3>
+    <div>
+        <span id='faultInfo'>Fault Information</span>
+    </div>
+</div>
 <div id="frame">
 <x3d id="x3dscene" primitiveQuality='Medium'>
     <param name="showLog" value="false"></param>
@@ -30,7 +46,7 @@
         <inline url="cal_outline.x3d"></inline>
         <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
      
-        
+        <Group DEF='CFM5' onclick="showName(event)">
       <!-- add fault inlines here -->
      <!--
 <inline url="CFM5/BNRA-BMFZ-MULT-Black_Mountain_fault-CFM3.x3d"></inline>
@@ -364,11 +380,15 @@
 <inline url="CFM5/WTRA-USAV-UPLD-Upland_fault-dipslip-CFM1.x3d"></inline>
 <inline url="CFM5/WTRA-USAV-WLNC-Walnut_Creek_fault-CFM5.x3d"></inline>
 -->
+        </Group>
     </Scene>
 </x3d>
 </div>
   <script type="text/javascript">
   function init() {
+    
+    //attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
+
     var eqGroup=document.createElement('Group');
     eqGroup.setAttribute('DEF','M7.1-RidgeCrestSequence');
     
@@ -415,6 +435,14 @@
         document.querySelector('Scene').appendChild(eqGroup);
     })
   }
+  function attachonclick(elements) {
+      elements.forEach(el => { el.setAttribute('onclick','showName(event)'); });
+  }
+  function showName(e) {
+      let name = e.target.getAttribute('DEF');
+      document.querySelector('#faultInfo').textContent=name;
+  }
+  
    </script>
   </body>
 </html>
