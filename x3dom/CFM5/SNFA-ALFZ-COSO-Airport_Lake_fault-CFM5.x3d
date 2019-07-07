@@ -2,7 +2,7 @@
   <Scene>
     <Shape DEF='SNFA-ALFZ-COSO-Airport_Lake_fault-CFM5'>
       <Appearance>
-        <Material diffuseColor='0 0.5 0.5'></Material>
+        <Material diffuseColor='0.7 0.5 0.5'></Material>
       </Appearance>
       <IndexedFaceSet solid='true' coordIndex='
 191 187 190 -1
