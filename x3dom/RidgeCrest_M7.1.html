@@ -32,7 +32,7 @@
      
         
       <!-- add fault inlines here -->
-     <!-- 
+     <!--
 <inline url="CFM5/BNRA-BMFZ-MULT-Black_Mountain_fault-CFM3.x3d"></inline>
 <inline url="CFM5/BNRA-NDVZ-MULT-Northern_Death_Valley_fault-CFM2.x3d"></inline>
 <inline url="CFM5/BNRA-SDVZ-MULT-Southern_Death_Valley_fault-vertical-CFM3.x3d"></inline>
@@ -76,6 +76,7 @@
 <inline url="CFM5/ETRA-NFTS-WEST-North_Frontal_Thrust_fault-lowdip-CFM5.x3d"></inline>
 <inline url="CFM5/ETRA-PMFZ-MRVS-Morongo_Valley_fault-CFM5.x3d"></inline>
 <inline url="CFM5/ETRA-PMFZ-MULT-Pinto_Mountain_fault-CFM5.x3d"></inline>
+-->
 <inline url="CFM5/GRFS-GRFZ-EAST-Garlock_fault-CFM5.x3d"></inline>
 <inline url="CFM5/GRFS-GRFZ-EAST-Owl_Lake_fault-CFM5.x3d"></inline>
 <inline url="CFM5/GRFS-GRFZ-WEST-Garlock_fault-CFM5.x3d"></inline>
@@ -118,6 +119,7 @@
 <inline url="CFM5/MJVA-NEMV-GRLS-Garlic_Springs_fault-CFM1.x3d"></inline>
 <inline url="CFM5/MJVA-NEMV-RDPS-Red_Pass_fault-CFM1.x3d"></inline>
 <inline url="CFM5/MJVA-PBMZ-MULT-Pisgah_Bullion_Mesquite_Lake_fault-CFM3.x3d"></inline>
+<!--
 <inline url="CFM5/OCBA-CBFZ-CRBS-Coronado_Bank_east_splay-SRLN-CFM5.x3d"></inline>
 <inline url="CFM5/OCBA-CBFZ-CRBS-Coronado_Bank_fault-north-SRLN-CFM5.x3d"></inline>
 <inline url="CFM5/OCBA-CBFZ-CRBS-Coronado_Bank_fault-south-SRLN-CFM5.x3d"></inline>
@@ -290,6 +292,7 @@
 <inline url="CFM5/SALT-IMFZ-IMPV-Imperial_fault-east-strand-south-CFM5.x3d"></inline>
 <inline url="CFM5/SALT-IMFZ-IMPV-Imperial_fault-east_strand-north-CFM5.x3d"></inline>
 <inline url="CFM5/SALT-IMFZ-IMPV-Imperial_fault-north_end-CFM5.x3d"></inline>
+-->
 <inline url="CFM5/SNFA-AHTC-ASHH-Ash_Hill_fault-CFM2.x3d"></inline>
 <inline url="CFM5/SNFA-AHTC-TANK-Tank_Canyon_fault-CFM2.x3d"></inline>
 <inline url="CFM5/SNFA-HMFZ-MULT-Hunter_Mountain_fault-CFM1.x3d"></inline>
@@ -298,6 +301,7 @@
 <inline url="CFM5/SNFA-PMVZ-MULT-Panamint_Valley_fault-steep-CFM2.x3d"></inline>
 <inline url="CFM5/SNFA-SNFZ-INDP-Independance_fault-CFM1.x3d"></inline>
 <inline url="CFM5/SNFA-SNFZ-MULT-Independance-Sierra_Nevada_fault-CFM1.x3d"></inline>
+<!--
 <inline url="CFM5/WTRA-MRFS-MULT-Mission_Ridge-Arroyo_Parida_fault-dip-CFM5.x3d"></inline>
 <inline url="CFM5/WTRA-NCVS-MULT-Southern_San_Cayetano-Ventura-Pitas_Point_fault-ramp_flat-HBRD-CFM5.x3d"></inline>
 <inline url="CFM5/WTRA-NCVS-MULT-Southern_San_Cayetano-Ventura-Pitas_Point_fault-steep-JHAP-CFM5.x3d"></inline>
@@ -391,10 +395,13 @@
             let t=document.createElement('Transform');
             let mag=d.properties.mag;
             //Length = 10^(-3.55+0.74*Mag)
-            let scale=Math.max(0.2, Math.pow(10,-3.55+0.74*mag))*1000;
+            let length=Math.max(0.2, Math.pow(10,-3.22 + 0.69*mag))*1000;
+            //let area=Math.max(1, Math.pow(10,-3.42 + 0.90*mag)*1000*1000);
+            let area=(mag < 6.71 ? Math.pow(10, -3.98 + mag) : Math.pow(10, 0.75*(-3.07 + mag)))*1000*1000;
+            
             //let scale=mag*mag*1000/2;
-            t.setAttribute('scale', [scale/2, scale/4, 200].join());
-            t.setAttribute('rotation', '0 1 0 -0.8');
+            t.setAttribute('scale', [0.5*length, 0.5*area/length, 200].join());
+            t.setAttribute('rotation', '0 1 0 -0.83');
             
             let s=document.createElement('Shape');
             s.setAttribute('USE', 'hypo');
