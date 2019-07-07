@@ -1,6 +1,6 @@
 <X3D>
   <Scene>
-    <Shape DEF='name'>
+    <Shape DEF='SNFA-ALFZ-COSO-Airport_Lake_fault-CFM5'>
       <Appearance>
         <Material diffuseColor='0 0.5 0.5'></Material>
       </Appearance>
