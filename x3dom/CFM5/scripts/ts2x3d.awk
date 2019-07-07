@@ -1,6 +1,6 @@
 $1 ~ "^name:" { split($1, tsname, ":") }
 $1 ~ "VRTX" { coords[c++] = $3" "$4" "$5 }
-$1 ~ "TRGL" { triangles[t++] = $2" "$3" "$4 }
+$1 ~ "TRGL" { triangles[t++] = $2-1" "$3-1" "$4-1 }
 END {
     print "<X3D>"
     print "  <Scene>"
