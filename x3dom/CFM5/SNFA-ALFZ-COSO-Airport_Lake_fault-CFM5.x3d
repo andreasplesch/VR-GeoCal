@@ -4,7 +4,7 @@
       <Appearance>
         <Material diffuseColor='0.7 0.5 0.5'></Material>
       </Appearance>
-      <IndexedFaceSet solid='true' coordIndex='
+      <IndexedFaceSet solid='false' coordIndex='
 191 187 190 -1
 171 175 176 -1
 64 63 68 -1
