@@ -26,6 +26,7 @@
           opacity: 0.8;
           width: 100%;
           text-align: center;
+          pointer-events: none;
       }
       #help {
           margin-left: auto;
@@ -76,15 +77,35 @@
 <x3d id="x3dscene" primitiveQuality='Medium' onDownloadsfinished='tuneInlines(event)'>
     <param name="showLog" value="false"></param>
     <param name="showStat" value="false"></param>
-    <Scene>
+    <Scene onmousemove='showCoords(event)'>
         <PointLight ambientIntensity='0.2' radius='20000000'></PointLight>
         <GeoViewpoint position="35.76 -117.6 100000" orientation="1 0 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="map"></GeoViewpoint>
         <GeoViewpoint position="34.76 -117.6 5000" orientation="1 0 0 0" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toNorth"></GeoViewpoint>
         <GeoViewpoint position="36.76 -117.6 5000" orientation="0 1 0 3.14" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toSouth"></GeoViewpoint>
         <GeoViewpoint position="35.76 -118.6 5000" orientation="0 1 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toEast"></GeoViewpoint>
         <GeoViewpoint position="35.76 -116.6 5000" orientation="0 1 0 1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toWest"></GeoViewpoint>
+        
         <inline url="cal_outline.x3d"></inline>
         <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
+        
+        <GeoLocation DEF='cursor' geoCoords="36 -117">
+            <Transform >
+                <Shape>
+                  <Appearance DEF='cursorApp'>
+                      <Material diffuseColor='1 1 1'></Material>
+                  </Appearance>
+                  <Box size='5000 100 100'></Box>
+                </Shape>
+                <Shape>
+                  <Appearance USE='cursorApp'></Appearance>
+                  <Box size='100 5000 100'></Box>
+                </Shape>
+                <Shape>
+                  <Appearance USE='cursorApp'></Appearance>
+                  <Box size='100 100 5000'></Box>
+                </Shape>
+            </Transform>
+        </GeoLocation>
      
         <Group DEF='CFM5' onclick="showName(event)">
       <!-- add fault inlines here -->
@@ -547,6 +568,21 @@
           inl.querySelector('Material').setAttribute('diffuseColor', dcolor.join());
       })
       
+  }
+  function showCoords(event) {
+      let gc = x3dom.fields.MFVec3f.parse(event.hitPnt.toString());
+      let gd = x3dom.nodeTypes.GeoCoordinate.prototype.GCtoGD(['GC','WE'], gc)[0];
+      //var veNode = event.hitObject.querySelector('[yscale]'); // any child object with yscale attribute
+      //var ve = veNode ? 1.0 * veNode.yscale : 1.0 ;
+      let n = new x3dom.fields.SFVec3f(event.normalX, event.normalY, event.normalZ);
+      let dip = Math.acos(gc[0].normalize().dot(n)) * 180/Math.PI;
+      dip = dip > 90 ? 180 - dip : dip;
+      document.querySelector('#faultInfo').textContent = 
+ `${(-gd.x).toFixed(3)}°W ${gd.y.toFixed(3)}°N ${
+ gd.z >= 0 ? gd.z.toFixed(0).padStart(6, "0") : ("-"+ (-gd.z).toFixed(0).padStart(5,"0"))
+ }m dip: ${dip.toFixed(0).padStart(2,"0")}°`;
+      document.querySelector('[DEF="cursor"]').setAttribute('geoCoords', [gd.y, gd.x, gd.z].join());
+
   }  
    </script>
   </body>
