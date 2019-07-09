@@ -9,7 +9,7 @@
     <script src="//d3js.org/d3.v5.min.js"></script>
     <style>
       #x3dscene {
-        background-color: black;
+        background-color: black;a
         margin-left: auto;
         margin-right: auto;
         width: 100%;
@@ -29,13 +29,13 @@
       }
       #help {
           margin-left: auto;
-          background-color: #062c2c;
+          background-color: #062c2c6e;
           position: absolute;
           z-index: 200;
-          color: white;
+          color: #f3f3f385;
           font-family: fantasy;
           font-size: 1em;
-          opacity: 0.5;
+          /* opacity: 0.5; */
           width: auto;
           text-align: right;
           padding: 10px;
@@ -49,7 +49,9 @@
           text-align: center;
       }
       [id*=button]:hover {
-          background: red
+          background: #950000;
+          color: #ccc;
+          /* opacity: 1.0; */
       }
 
 
@@ -524,8 +526,11 @@
       document.querySelector('#faultInfo').textContent=name;
   }
   function setView(description) {
-      document.querySelector('x3d').runtime.resetView();
-      document.querySelector("Geoviewpoint[description="+description+"]").setAttribute('bind','true');
+      let rt = document.querySelector('x3d').runtime;
+      let vp = rt.getActiveBindable('Geoviewpoint');
+      let target = document.querySelector("Geoviewpoint[description="+description+"]");
+      if (target == vp) rt.resetView();
+      else target.setAttribute('bind','true');
   }  
    </script>
   </body>
