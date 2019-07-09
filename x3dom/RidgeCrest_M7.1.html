@@ -536,7 +536,7 @@
   function tuneInlines(e) {
       document.querySelectorAll('[namespacename="ns"]').forEach(inl =>
       {
-          let ifs = inl.querySelector('IndexedFaceset');
+          let ifs = inl.querySelector('IndexedFaceSet');
           ifs.setAttribute('creaseAngle', "3.14");
           let parent=ifs.parentElement;
           parent.removeChild(ifs);
