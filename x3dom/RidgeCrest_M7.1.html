@@ -42,6 +42,7 @@
           right: 0px;
       }
       [id*=button] {
+          cursor: pointer;
           margin: 2px;
           border-style: outset;
           padding: 6px;
@@ -523,6 +524,7 @@
       document.querySelector('#faultInfo').textContent=name;
   }
   function setView(description) {
+      document.querySelector('x3d').runtime.resetView();
       document.querySelector("Geoviewpoint[description="+description+"]").setAttribute('bind','true');
   }  
    </script>
