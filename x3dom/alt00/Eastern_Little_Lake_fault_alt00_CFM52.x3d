@@ -1,6 +1,6 @@
 <X3D>
   <Scene>
-    <Shape DEF=''>
+    <Shape DEF='Eastern_Little_Lake_fault_alt00_CFM52'>
       <Appearance>
         <Material diffuseColor='0 0.5 0.5'></Material>
       </Appearance>
