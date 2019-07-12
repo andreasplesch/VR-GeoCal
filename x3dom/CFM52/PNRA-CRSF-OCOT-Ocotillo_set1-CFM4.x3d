@@ -1,0 +1,28 @@
+<X3D>
+  <Scene>
+    <Shape DEF="PNRA-CRSF-OCOT-Ocotillo_set1-CFM4">
+      <Appearance>
+         <Material diffuseColor="0 0 1" >
+         </Material>
+      </Appearance>
+      <IndexedFaceSet solid="false" 
+        coordIndex=" 
+2 1 0 -1
+4 3 1 -1
+5 3 4 -1
+4 1 2 -1
+">
+        <GeoCoordinate point=" 
+592069.59375 3618939.65625 -6290.5
+592069.59375 3618803.75 -5938.173828125
+593111.4375 3622463.09375 -6290.5
+592563.84375 3618803.75 -1604.5
+593615.625 3622463.09375 -1869.8314208984375
+593615.625 3622360.75 -1604.5
+" 
+ geoSystem='"UTM" "Z11" "N" "CC" "easting_first"'>
+        </GeoCoordinate>
+      </IndexedFaceSet>
+    </Shape>
+  </Scene>
+</X3D>
