@@ -570,10 +570,23 @@
             point += [maxB.y, maxB.x, maxB.z].join()+" ";
             point += [maxA.y, maxA.x, maxA.z].join()+" ";
             
+            point += [minA.y, minA.x, minA.z].join()+" ";
+            point += [minB.y, minB.x, minB.z].join()+" ";
+            point += [minB.y, minB.x, maxB.z].join()+" ";
+            point += [minA.y, minA.x, maxA.z].join()+" ";
+            
+            point += [maxA.y, maxA.x, minA.z].join()+" ";
+            point += [maxA.y, maxA.x, maxA.z].join()+" ";
+            point += [maxB.y, maxB.x, maxB.z].join()+" ";
+            point += [maxB.y, maxB.x, minB.z].join()+" ";
+            
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
+            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+
 
 //             let s=document.createElement('Shape');
 //             s.setAttribute('USE', 'hypo');
