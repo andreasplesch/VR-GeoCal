@@ -521,8 +521,12 @@
     eqGeo.appendChild(eqGeoCoords);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-
-    d3.json('https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson').then(function(data){
+    const minMagnitude = 1.0;
+    let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
+    EventsSourceUrl += '&minmagnitude=' + minMagnitude;
+    EventsSourceUrl += '&eventtype=earthquake&orderby=time';
+    //https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson
+    d3.json(EventsSourceUrl).then(function(data){
         let counter = 0, index = 0, coordindex="", km2deg = 1/110, point="";
         data.features.forEach((d, i) => {
             let c=d.geometry.coordinates;
@@ -538,7 +542,8 @@
             let area=(mag < 6.71 ? Math.pow(10, -3.98 + mag) : Math.pow(10, 0.75*(-3.07 + mag)));//*1000*1000;
             let rotation = new x3dom.fields.SFMatrix4f.rotationZ(azi);
             let translation = new x3dom.fields.SFMatrix4f.translation(new x3dom.fields.SFVec3f(c[0],c[1],-1000*c[2]));
-            let w=km2deg*widthkm, l=km2deg*length/2, h=1000*0.5*area/length;
+            //let w=km2deg*widthkm, l=km2deg*length/2, h=1000*0.5*area/length;
+            let h = mag*100, l = km2deg * h/1000, w = l;
             let minA=translation.mult(rotation).multMatrixPnt(
              new x3dom.fields.SFVec3f(-w, -l, -h));
             let minB=translation.mult(rotation).multMatrixPnt(
