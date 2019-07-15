@@ -82,7 +82,7 @@
     <param name="showStat" value="false"></param>
     <Scene onmousemove='showCoords(event)'>
         <PointLight ambientIntensity='0.2' radius='20000000'></PointLight>
-        <GeoViewpoint position="35.76 -117.6 100000" orientation="1 0 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="map"></GeoViewpoint>
+        <GeoViewpoint position="35.76 -117.6 200000" orientation="1 0 0 -1.57" fieldOfView="0.3" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="map"></GeoViewpoint>
         <GeoViewpoint position="34.76 -117.6 5000" orientation="1 0 0 0" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toNorth"></GeoViewpoint>
         <GeoViewpoint position="36.76 -117.6 5000" orientation="0 1 0 3.14" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toSouth"></GeoViewpoint>
         <GeoViewpoint position="35.76 -118.6 5000" orientation="0 1 0 -1.57" zNear="139.91409" zFar="1399140.91219" centerofRotation="35.76 -117.6 -17000" description="toEast"></GeoViewpoint>
@@ -497,6 +497,7 @@
 <Inline namespacename="ns" url="CFM52/WTRA-USAV-SNJH-San_Jose_fault-CFM5.x3d"></Inline>
 <Inline namespacename="ns" url="CFM52/WTRA-USAV-UPLD-Upland_fault_dipslip-CFM1.x3d"></Inline>
 <Inline namespacename="ns" url="CFM52/WTRA-USAV-WLNC-Walnut_Creek_fault-CFM5.x3d"></Inline>
+
         </Group>
     </Scene>
 </x3d>
@@ -535,13 +536,13 @@
     eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-    const minMagnitude = 0.0;
+    const minMagnitude = 1.5;
     let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
     //https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson
     d3.json(EventsSourceUrl).then(function(data){
-        let counter = 0, index = 0, coordindex="", km2deg = 1/110, point="", color="";
+        let counter = 0, index = 0, coordindex="", km2deg = 1/110, m2deg = km2deg/1000; point="", color="";
         data.features.forEach((d, i) => {
             let c=d.geometry.coordinates;
             if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
@@ -551,33 +552,58 @@
             //let t=document.createElement('Transform');
             let mag=d.properties.mag;
             //Length = 10^(-3.55+0.74*Mag)
-            let length=Math.max(0.5, Math.pow(10,-3.22 + 0.69*mag));//*1000;
+            //let length=Math.max(0.5, Math.pow(10,-3.22 + 0.69*mag));//*1000;
             //let area=Math.max(1, Math.pow(10,-3.42 + 0.90*mag)*1000*1000);
-            let area=(mag < 6.71 ? Math.pow(10, -3.98 + mag) : Math.pow(10, 0.75*(-3.07 + mag)));//*1000*1000;
-            let rotation = new x3dom.fields.SFMatrix4f.rotationZ(azi);
-            let translation = new x3dom.fields.SFMatrix4f.translation(new x3dom.fields.SFVec3f(c[0],c[1],-1000*c[2]));
+            //let area=(mag < 6.71 ? Math.pow(10, -3.98 + mag) : Math.pow(10, 0.75*(-3.07 + mag)));//*1000*1000;
+            //let rotation = new x3dom.fields.SFMatrix4f.rotationZ(azi);
+            //let translation = new x3dom.fields.SFMatrix4f.translation(new x3dom.fields.SFVec3f(c[0],c[1],-1000*c[2]));
+            //let trafo = translation;//mult.(rotation);
             //let w=km2deg*widthkm, l=km2deg*length/2, h=1000*0.5*area/length;
             let h = mag*100, l = km2deg * h/1000, w = l;
-            let minA=translation.mult(rotation).multMatrixPnt(
-             new x3dom.fields.SFVec3f(-w, -l, -h));
-            let minB=translation.mult(rotation).multMatrixPnt(
-             new x3dom.fields.SFVec3f(w, -l, -h));
-            let maxA=translation.mult(rotation).multMatrixPnt(
-             new x3dom.fields.SFVec3f(-w, l, h));
-            let maxB=translation.mult(rotation).multMatrixPnt(
-             new x3dom.fields.SFVec3f(w, l, h));
+            
+//             let minA=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(-w, -l, -h));
+//             let minB=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(w, -l, -h));
+//             let maxA=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(-w, l, h));
+//             let maxB=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(w, l, h));
+            
+            var r,x,y,z,d2r = Math.PI/180, smag=100*mag, steps=8, m2degLat = 360/40000000, m2degLon = m2degLat/Math.cos(34*d2r);
+            for (var lat=-90; lat<=90; lat += 360/steps) {
+              r = smag*Math.cos(lat*d2r);
+              z = smag*Math.sin(lat*d2r);
+              for (var lon=0; lon<360; lon += 360/steps) {
+                x = r*Math.cos(lon*d2r);
+                y = r*Math.sin(lon*d2r);
+                point += [y*m2degLat + c[1], x*m2degLon + c[0], z-c[2]*1000].join()+' ';
+                if (lat < 90) {
+                  if (lon < (360 - 360/steps)) {
+                    coordindex += [index++, index, index+steps, index+steps-1].join()+',-1 ';
+                  }
+                  else {
+                    coordindex += [index++, index-steps, index, index+steps-1].join()+',-1 ';
+                  } 
+                } 
+              }
+            }
+            index += steps;
+
+
             //let scale=mag*mag*1000/2;
             //t.setAttribute('scale', [0.5*length, 0.5*area/length, 200].join());
             //t.setAttribute('rotation', '0 1 0 -0.83');
-            point += [minA.y, minA.x, minA.z].join()+" "; // 0
-            point += [minA.y, minA.x, maxA.z].join()+" "; // 1
-            point += [maxA.y, maxA.x, maxA.z].join()+" "; // 2
-            point += [maxA.y, maxA.x, minA.z].join()+" "; // 3
             
-            point += [minB.y, minB.x, minB.z].join()+" "; // 4
-            point += [maxB.y, maxB.x, minB.z].join()+" "; // 5
-            point += [maxB.y, maxB.x, maxB.z].join()+" "; // 6
-            point += [minB.y, minB.x, maxB.z].join()+" "; // 7
+//             point += [minA.y, minA.x, minA.z].join()+" "; // 0
+//             point += [minA.y, minA.x, maxA.z].join()+" "; // 1
+//             point += [maxA.y, maxA.x, maxA.z].join()+" "; // 2
+//             point += [maxA.y, maxA.x, minA.z].join()+" "; // 3
+            
+//             point += [minB.y, minB.x, minB.z].join()+" "; // 4
+//             point += [maxB.y, maxB.x, minB.z].join()+" "; // 5
+//             point += [maxB.y, maxB.x, maxB.z].join()+" "; // 6
+//             point += [minB.y, minB.x, maxB.z].join()+" "; // 7
             
 //             point += [minA.y, minA.x, minA.z].join()+" "; 0
 //             point += [maxA.y, maxA.x, minA.z].join()+" "; 3
@@ -600,18 +626,21 @@
 //             point += [maxB.y, maxB.x, minB.z].join()+" "; 5
             
             const baseIndex = index;
-            coordindex += [index++, index++, index++, index++, -1].join()+" ";
-            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+            
+//             coordindex += [index++, index++, index++, index++, -1].join()+" ";
+//             coordindex += [index++, index++, index++, index++, -1].join()+" ";
 
-            coordindex += [0,3,5,4].map(i => baseIndex + i).join()+", -1 ";
-            coordindex += [1,7,6,2].map(i => baseIndex + i).join()+", -1 ";
-            coordindex += [0,4,7,1].map(i => baseIndex + i).join()+", -1 ";
-            coordindex += [3,2,6,5].map(i => baseIndex + i).join()+", -1 ";
+//             coordindex += [0,3,5,4].map(i => baseIndex + i).join()+", -1 ";
+//             coordindex += [1,7,6,2].map(i => baseIndex + i).join()+", -1 ";
+//             coordindex += [0,4,7,1].map(i => baseIndex + i).join()+", -1 ";
+//             coordindex += [3,2,6,5].map(i => baseIndex + i).join()+", -1 ";
 
             let colorC = mag/7.1;
             let d3c = d3.cubehelix(30+(colorC*330), 1.9*(colorC), 0.8*colorC).rgb();
-            let sfcolor = [d3c.r/255, d3c.g/255, d3c.b/255].join(' ');
-            color += (sfcolor+",").repeat(5)+sfcolor+' ';
+            let sfcolor = [(d3c.r/255).toFixed(4), (d3c.g/255).toFixed(4), (d3c.b/255).toFixed(4)].join(' ');
+            
+//             color += (sfcolor+",").repeat(5)+sfcolor+' ';
+            color += (sfcolor+",").repeat(steps*steps/2-1)+sfcolor+' ';
 
 //             let s=document.createElement('Shape');
 //             s.setAttribute('USE', 'hypo');
@@ -697,7 +726,7 @@
           let def = inl.querySelector('Shape').getAttribute('DEF');
           if (def.includes("Little_Lake") || def.includes("Airport_Lake")) dcolor=[1,0,0];
           inl.querySelector('Material').setAttribute('diffuseColor', dcolor.join());
-          inl.querySelector('Material').setAttribute('transparency', 0.2);
+          inl.querySelector('Material').setAttribute('transparency', 0.6);
           //inl.querySelector('Appearance').setAttribute('sortKey', 0);
     
       })
