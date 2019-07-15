@@ -61,7 +61,7 @@
 
       </style>
 </head>
-<body onload='init()' _style='width:100%; height:100%; border:0; margin:0; padding:0; background: linear-gradient(Grey 0%, White 100%);'>
+<body onload='init()' >
   
 <div id='info'>
     <h2>The 2019 M6.4 and M7.1 Ridgecrest sequence</h2>
@@ -502,6 +502,8 @@
 </div>
   <script type="text/javascript">
   function init() {
+
+    loadTraces();
     
     //attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
 
@@ -523,16 +525,16 @@
     
     eqShape.appendChild(eqApp);
     //eqGeo=document.createElement('Box');
-    eqGeo=document.createElement('IndexedFaceSet');
+    var eqGeo=document.createElement('IndexedFaceSet');
     eqGeo.setAttribute('solid','true');
     eqGeo.setAttribute('colorPerVertex','false');
-    eqGeoCoords=document.createElement('geoCoordinate');
+    var eqGeoCoords=document.createElement('geoCoordinate');
     eqGeo.appendChild(eqGeoCoords);
     eqColor=document.createElement('Color');
     eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-    const minMagnitude = 1.0;
+    const minMagnitude = 4.0;
     let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
@@ -627,6 +629,47 @@
         document.querySelector('#faultInfo').textContent=counter+" earthquakes displayed"; 
     })
   }
+  function loadTraces() {
+
+      var traceUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/CFM52_preferred_traces_all5.geojson';
+      
+      d3.json(traceUrl).then(loadGeojson, console.log)
+        .then(appendToScene, console.log);     
+  }
+  function loadGeojson(geojson) {
+      var shape = document.createElement('Shape');
+      shape.setAttribute('DEF', geojson.name);
+      var app = document.createElement('Appearance');
+      var material = document.createElement('Material');
+      material.setAttribute('emissiveColor','0 1 0');
+      var lineprop = document.createElement('LineProperties');
+      lineprop.setAttribute('lineWidthScaleFactor','4');
+      app.appendChild(material);
+      app.appendChild(lineprop);
+      var ils = document.createElement('IndexedLineSet');
+      var gc = document.createElement('geoCoordinate');
+      ils.appendChild(gc);
+      shape.appendChild(app);
+      shape.appendChild(ils);
+      var point = "", coordIndex="", counter = 0;
+      geojson.features.forEach(d => {
+          d.geometry.coordinates.forEach(xyz => {
+              point += [xyz[1].toFixed(5), xyz[0].toFixed(5), xyz[2].toFixed(1)].join()+" ";
+              coordIndex += counter++ + ' ';
+          })
+          point += "\n";
+          coordIndex += "-1,\n";
+      })
+      gc.setAttribute('point', point);
+      ils.setAttribute('coordIndex', coordIndex);
+      return shape;
+  }
+  function appendToScene(child) {
+    document.querySelector('Scene').appendChild(child);
+    return;
+  }
+
+
   function attachonclick(elements) {
       elements.forEach(el => { el.setAttribute('onclick','showName(event)'); });
   }
