@@ -510,6 +510,8 @@
     
     //attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
 
+    var isMobile = navigator.userAgent.includes("obi");
+
     var eqGroup=document.createElement('Group');
     eqGroup.setAttribute('DEF','M7.1-RidgeCrestSequence');
     
@@ -537,7 +539,7 @@
     eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-    const minMagnitude = x3dom.caps.MOBILE ? 2.5 : 1.5;
+    const minMagnitude = isMobile ? 2.5 : 1.5;
     let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
@@ -573,7 +575,7 @@
             
             var r,x,y,z,d2r = Math.PI/180, smag=100*mag,
               m2degLat = 360/40000000, m2degLon = m2degLat/Math.cos(34*d2r),
-              steps = x3dom.caps.MOBILE ? 4 : 8;
+              steps = isMobile ? 4 : 8;
             for (var lat=-90; lat<=90; lat += 360/steps) {
               r = smag*Math.cos(lat*d2r);
               z = smag*Math.sin(lat*d2r);
