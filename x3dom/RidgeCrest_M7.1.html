@@ -3,6 +3,8 @@
 <head>
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
     <title>CFM and the RidgeCrest M7.1 earthquake</title>
     <link rel="stylesheet" type="text/css" href="https://x3dom.org/download/dev/x3dom.css">
     <script type="text/javascript" src="https://x3dom.org/download/dev/x3dom-full.debug.js"></script>
@@ -10,11 +12,9 @@
     <style>
       #x3dscene {
         background-color: black;a
-        margin-left: auto;
-        margin-right: auto;
         width: 100%;
         height:  100%;
-        /* position: absolute; */
+        position: fixed;
         margin: 0;
       }
       #info {
@@ -54,11 +54,14 @@
           color: #ccc;
           /* opacity: 1.0; */
       }
+      body {
+          width:100%; height:100%; border:0; margin:0; padding:0;
+      }
 
 
       </style>
 </head>
-<body onload='init()' style='width:100%; height:100%; border:0; margin:0; padding:0; background: linear-gradient(Grey 0%, White 100%);'>
+<body onload='init()' _style='width:100%; height:100%; border:0; margin:0; padding:0; background: linear-gradient(Grey 0%, White 100%);'>
   
 <div id='info'>
     <h2>The 2019 M6.4 and M7.1 Ridgecrest sequence</h2>
@@ -510,15 +513,22 @@
     var eqApp=document.createElement('Appearance');
     var eqMat=document.createElement('Material');
     eqMat.setAttribute('diffuseColor','0 1 1');
-    eqMat.setAttribute('transparency','0.1');
+    eqMat.setAttribute('transparency','0.2');
     
+    var eqDepthmode=document.createElement('DepthMode');
+    eqDepthmode.setAttribute('depthFunc','ALWAYS');
+
     eqApp.appendChild(eqMat);
+    eqApp.appendChild(eqDepthmode);
+    
     eqShape.appendChild(eqApp);
     //eqGeo=document.createElement('Box');
     eqGeo=document.createElement('IndexedFaceSet');
     eqGeo.setAttribute('solid','true');
     eqGeoCoords=document.createElement('geoCoordinate');
     eqGeo.appendChild(eqGeoCoords);
+    eqColor=document.createElement('Color');
+    eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
     const minMagnitude = 1.0;
@@ -527,7 +537,7 @@
     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
     //https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson
     d3.json(EventsSourceUrl).then(function(data){
-        let counter = 0, index = 0, coordindex="", km2deg = 1/110, point="";
+        let counter = 0, index = 0, coordindex="", km2deg = 1/110, point="", color="";
         data.features.forEach((d, i) => {
             let c=d.geometry.coordinates;
             if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
@@ -592,6 +602,16 @@
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
 
+            let colorC = mag/7.1;
+            let d3c = d3.cubehelix(30+(colorC*330), 1.9*(colorC), 0.8*colorC).rgb();
+            let sfcolor = [d3c.r/255, d3c.g/255, d3c.b/255].join(' ');
+            let sfcolor4 = sfcolor+","+sfcolor+","+sfcolor+","+sfcolor;
+            color += sfcolor4+",";
+            color += sfcolor4+",";
+            color += sfcolor4+",";
+            color += sfcolor4+",";
+            color += sfcolor4+",";
+            color += sfcolor4+" ";
 
 //             let s=document.createElement('Shape');
 //             s.setAttribute('USE', 'hypo');
@@ -600,13 +620,14 @@
 //             eqGroup.appendChild(geoLoc);
         })
 
-        eqGeoCoords.setAttribute('point', point);  
+        eqGeoCoords.setAttribute('point', point);
+        eqColor.setAttribute('color', color);  
 //             data.features.map(d => {let c=d.geometry.coordinates;return [c[1],c[0],-c[2]*1000]}).join()
 //         );
         eqGeo.setAttribute('coordIndex', coordindex);
         eqGroup.appendChild(eqShape);
         document.querySelector('Scene').appendChild(eqGroup);
-        document.querySelector('#faultInfo').textContent=counter+" earthquakes displayed";  
+        document.querySelector('#faultInfo').textContent=counter+" earthquakes displayed"; 
     })
   }
   function attachonclick(elements) {
@@ -635,6 +656,9 @@
           let def = inl.querySelector('Shape').getAttribute('DEF');
           if (def.includes("Little_Lake") || def.includes("Airport_Lake")) dcolor=[1,0,0];
           inl.querySelector('Material').setAttribute('diffuseColor', dcolor.join());
+          inl.querySelector('Material').setAttribute('transparency', 0.2);
+          //inl.querySelector('Appearance').setAttribute('sortKey', 0);
+    
       })
       
   }
