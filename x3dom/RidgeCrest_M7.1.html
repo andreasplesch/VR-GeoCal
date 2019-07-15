@@ -525,6 +525,7 @@
     //eqGeo=document.createElement('Box');
     eqGeo=document.createElement('IndexedFaceSet');
     eqGeo.setAttribute('solid','true');
+    eqGeo.setAttribute('colorPerVertex','false');
     eqGeoCoords=document.createElement('geoCoordinate');
     eqGeo.appendChild(eqGeoCoords);
     eqColor=document.createElement('Color');
@@ -565,53 +566,49 @@
             //let scale=mag*mag*1000/2;
             //t.setAttribute('scale', [0.5*length, 0.5*area/length, 200].join());
             //t.setAttribute('rotation', '0 1 0 -0.83');
-            point += [minA.y, minA.x, minA.z].join()+" ";
-            point += [minA.y, minA.x, maxA.z].join()+" ";
-            point += [maxA.y, maxA.x, maxA.z].join()+" ";
-            point += [maxA.y, maxA.x, minA.z].join()+" ";
+            point += [minA.y, minA.x, minA.z].join()+" "; // 0
+            point += [minA.y, minA.x, maxA.z].join()+" "; // 1
+            point += [maxA.y, maxA.x, maxA.z].join()+" "; // 2
+            point += [maxA.y, maxA.x, minA.z].join()+" "; // 3
             
-            point += [minB.y, minB.x, minB.z].join()+" ";
-            point += [maxB.y, maxB.x, minB.z].join()+" ";
-            point += [maxB.y, maxB.x, maxB.z].join()+" ";
-            point += [minB.y, minB.x, maxB.z].join()+" ";
+            point += [minB.y, minB.x, minB.z].join()+" "; // 4
+            point += [maxB.y, maxB.x, minB.z].join()+" "; // 5
+            point += [maxB.y, maxB.x, maxB.z].join()+" "; // 6
+            point += [minB.y, minB.x, maxB.z].join()+" "; // 7
             
-            point += [minA.y, minA.x, minA.z].join()+" ";
-            point += [maxA.y, maxA.x, minA.z].join()+" ";
-            point += [maxB.y, maxB.x, minB.z].join()+" ";
-            point += [minB.y, minB.x, minB.z].join()+" ";
+//             point += [minA.y, minA.x, minA.z].join()+" "; 0
+//             point += [maxA.y, maxA.x, minA.z].join()+" "; 3
+//             point += [maxB.y, maxB.x, minB.z].join()+" "; 5
+//             point += [minB.y, minB.x, minB.z].join()+" "; 4
             
-            point += [minA.y, minA.x, maxA.z].join()+" ";
-            point += [minB.y, minB.x, maxB.z].join()+" ";
-            point += [maxB.y, maxB.x, maxB.z].join()+" ";
-            point += [maxA.y, maxA.x, maxA.z].join()+" ";
+//             point += [minA.y, minA.x, maxA.z].join()+" "; 1
+//             point += [minB.y, minB.x, maxB.z].join()+" "; 7
+//             point += [maxB.y, maxB.x, maxB.z].join()+" "; 6
+//             point += [maxA.y, maxA.x, maxA.z].join()+" "; 2
             
-            point += [minA.y, minA.x, minA.z].join()+" ";
-            point += [minB.y, minB.x, minB.z].join()+" ";
-            point += [minB.y, minB.x, maxB.z].join()+" ";
-            point += [minA.y, minA.x, maxA.z].join()+" ";
+//             point += [minA.y, minA.x, minA.z].join()+" "; 0
+//             point += [minB.y, minB.x, minB.z].join()+" "; 4
+//             point += [minB.y, minB.x, maxB.z].join()+" "; 7
+//             point += [minA.y, minA.x, maxA.z].join()+" "; 1
             
-            point += [maxA.y, maxA.x, minA.z].join()+" ";
-            point += [maxA.y, maxA.x, maxA.z].join()+" ";
-            point += [maxB.y, maxB.x, maxB.z].join()+" ";
-            point += [maxB.y, maxB.x, minB.z].join()+" ";
+//             point += [maxA.y, maxA.x, minA.z].join()+" "; 3
+//             point += [maxA.y, maxA.x, maxA.z].join()+" "; 2
+//             point += [maxB.y, maxB.x, maxB.z].join()+" "; 6
+//             point += [maxB.y, maxB.x, minB.z].join()+" "; 5
             
+            const baseIndex = index;
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
             coordindex += [index++, index++, index++, index++, -1].join()+" ";
-            coordindex += [index++, index++, index++, index++, -1].join()+" ";
-            coordindex += [index++, index++, index++, index++, -1].join()+" ";
-            coordindex += [index++, index++, index++, index++, -1].join()+" ";
-            coordindex += [index++, index++, index++, index++, -1].join()+" ";
+
+            coordindex += [0,3,5,4].map(i => baseIndex + i).join()+", -1 ";
+            coordindex += [1,7,6,2].map(i => baseIndex + i).join()+", -1 ";
+            coordindex += [0,4,7,1].map(i => baseIndex + i).join()+", -1 ";
+            coordindex += [3,2,6,5].map(i => baseIndex + i).join()+", -1 ";
 
             let colorC = mag/7.1;
             let d3c = d3.cubehelix(30+(colorC*330), 1.9*(colorC), 0.8*colorC).rgb();
             let sfcolor = [d3c.r/255, d3c.g/255, d3c.b/255].join(' ');
-            let sfcolor4 = sfcolor+","+sfcolor+","+sfcolor+","+sfcolor;
-            color += sfcolor4+",";
-            color += sfcolor4+",";
-            color += sfcolor4+",";
-            color += sfcolor4+",";
-            color += sfcolor4+",";
-            color += sfcolor4+" ";
+            color += (sfcolor+",").repeat(5)+sfcolor+' ';
 
 //             let s=document.createElement('Shape');
 //             s.setAttribute('USE', 'hypo');
@@ -621,7 +618,7 @@
         })
 
         eqGeoCoords.setAttribute('point', point);
-        eqColor.setAttribute('color', color);  
+        eqColor.setAttribute('color', color);
 //             data.features.map(d => {let c=d.geometry.coordinates;return [c[1],c[0],-c[2]*1000]}).join()
 //         );
         eqGeo.setAttribute('coordIndex', coordindex);
