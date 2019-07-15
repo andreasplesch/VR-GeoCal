@@ -91,6 +91,7 @@
         <inline url="cal_outline.x3d"></inline>
         <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
         <inline namespacename='cfm' url="CFM52/traces/CFM52_preferred_traces_all5.x3d"></inline>
+        <inline namespacename='mil' url="CFM52/traces/NewFaults4Millner.x3d"></inline>
         
         <GeoLocation DEF='cursor' geoCoords="36 -117">
             <Transform >
@@ -661,17 +662,21 @@
   }
   function loadTraces() {
 
-      var traceUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/CFM52_preferred_traces_all5.geojson';
+//       var traceUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/CFM52_preferred_traces_all5.geojson';
       
-      d3.json(traceUrl).then(loadGeojson, console.log)
-        .then(appendToScene, console.log);     
+//       d3.json(traceUrl).then(loadGeojson, console.log)
+//         .then(appendToScene, console.log);
+        var MillnerUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/New_faults4_Millner.geojson';
+        d3.json(MillnerUrl).then(loadGeojson, console.log)
+          .then(appendToScene, console.log);          
+     
   }
   function loadGeojson(geojson) {
       var shape = document.createElement('Shape');
       shape.setAttribute('DEF', geojson.name);
       var app = document.createElement('Appearance');
       var material = document.createElement('Material');
-      material.setAttribute('emissiveColor','0 1 0');
+      material.setAttribute('emissiveColor','1 1 0');
       var lineprop = document.createElement('LineProperties');
       lineprop.setAttribute('lineWidthScaleFactor','4');
       app.appendChild(material);
@@ -684,7 +689,7 @@
       var point = "", coordIndex="", counter = 0;
       geojson.features.forEach(d => {
           d.geometry.coordinates.forEach(xyz => {
-              point += [xyz[1].toFixed(5), xyz[0].toFixed(5), xyz[2].toFixed(1)].join()+" ";
+              point += [xyz[1].toFixed(5), xyz[0].toFixed(5), (xyz[2] || 0).toFixed(1) ].join()+" ";
               coordIndex += counter++ + ' ';
           })
           point += "\n";
