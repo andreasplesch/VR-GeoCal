@@ -504,6 +504,7 @@
 </x3d>
 </div>
   <script type="text/javascript">
+  var eqData; // global to share
   function init() {
 
     //loadTraces();
@@ -513,7 +514,8 @@
     var isMobile = navigator.userAgent.includes("obi");
 
     var eqGroup=document.createElement('Group');
-    eqGroup.setAttribute('DEF','M7.1-RidgeCrestSequence');
+    eqGroup.setAttribute('DEF','M7.1-RidgecrestSequence');
+    eqGroup.setAttribute('onclick', 'queryRidgecrest(event)')
     
     var eqShape=document.createElement('Shape');
     eqShape.setAttribute('DEF','hypo');
@@ -546,6 +548,7 @@
     //https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson
     d3.json(EventsSourceUrl).then(function(data){
         let counter = 0, index = 0, coordindex="", km2deg = 1/110, m2deg = km2deg/1000; point="", color="";
+        eqData = data;
         data.features.forEach((d, i) => {
             let c=d.geometry.coordinates;
             if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
@@ -708,7 +711,6 @@
     return;
   }
 
-
   function attachonclick(elements) {
       elements.forEach(el => { el.setAttribute('onclick','showName(event)'); });
   }
@@ -738,8 +740,7 @@
           inl.querySelector('Material').setAttribute('transparency', 0.3);
           //inl.querySelector('Appearance').setAttribute('sortKey', 0);
     
-      })
-      
+      })      
   }
   function showCoords(event) {
       let gc = x3dom.fields.MFVec3f.parse(event.hitPnt.toString());
@@ -755,7 +756,26 @@
  }m dip: ${dip.toFixed(0).padStart(2,"0")}°`;
       document.querySelector('[DEF="cursor"]').setAttribute('geoCoords', [gd.y, gd.x, gd.z].join());
 
-  }  
+  }
+  function queryRidgecrest(event) {
+      let gc = x3dom.fields.MFVec3f.parse(event.hitPnt.toString());
+      let gd = x3dom.nodeTypes.GeoCoordinate.prototype.GCtoGD(['GC','WE'], gc)[0];
+      const degLat2m = 40000000/360, d2r = Math.PI/180, degLon2m = degLat2m/Math.cos(34*d2r); // rough conversion to cartesian
+      var hit = new x3dom.fields.SFVec3f(gd.x*degLon2m, gd.y*degLat2m, gd.z);
+      var cPoint = new x3dom.fields.SFVec3f();
+      var dmin = 1e99, dist, eqIndex;
+      eqData.features.forEach( (d,i) => {
+        let c=d.geometry.coordinates;
+        cPoint.set(c[0]*degLon2m, c[1]*degLat2m, c[2]*-1000);
+        dist = cPoint.subtract(hit).length();
+        if ((dist < dmin)) {
+          dmin = dist;
+          eqIndex = i;
+        }
+      });
+      document.querySelector('#faultInfo').textContent = eqData.features[eqIndex].properties.title;
+  }
+
    </script>
   </body>
 </html>
