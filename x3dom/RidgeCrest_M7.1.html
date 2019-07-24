@@ -104,7 +104,7 @@
         <inline namespacename='cfm' url="CFM52/traces/CFM52_preferred_traces_all5.x3d"></inline>
         <inline namespacename='mil' url="CFM52/traces/NewFaults4Millner.x3d"></inline>
         
-        <GeoLocation DEF='cursor' geoCoords="36 -117">
+        <GeoLocation DEF='cursor' geoCoords="36 -117 0">
             <Transform >
                 <Shape>
                   <Appearance DEF='cursorApp'>
@@ -121,6 +121,58 @@
                   <Box size='100 100 5000'></Box>
                 </Shape>
             </Transform>
+        </GeoLocation>
+        <GeoLocation DEF='eqSelection' geoCoords="36 -117 0">
+          <Transform DEF='eqSelTransform'>
+            <Transform DEF='eqSelX' translation='0 -100 -100'>
+              <Shape DEF='eqxBar'>
+                <Appearance DEF='eqSelApp'>
+                  <Material diffuseColor='1 1 0'></Material>
+                  <DepthMode depthFunc='ALWAYS'></DepthMode>
+                </Appearance>
+                <Box size='200 50 50'></Box>
+              </Shape>
+            </Transform>
+            <Transform translation='0 100 -100'>
+              <Shape USE='eqxBar'></Shape>
+            </Transform>
+            <Transform translation='0 100 100'>
+              <Shape USE='eqxBar'></Shape>
+            </Transform>
+            <Transform translation='0 -100 100'>
+              <Shape USE='eqxBar'></Shape>
+            </Transform>
+            <Transform translation='-100 0 -100'>
+              <Shape DEF='eqyBar'>
+                <Appearance USE='eqSelApp'></Appearance>
+                <Box size='50 200 50'></Box>
+              </Shape>
+            </Transform>
+            <Transform translation='100 0 -100'>
+              <Shape USE='eqyBar'></Shape>
+            </Transform>
+            <Transform translation='100 0 100'>
+              <Shape USE='eqyBar'></Shape>
+            </Transform>
+            <Transform translation='100 0 -100'>
+              <Shape USE='eqyBar'></Shape>
+            </Transform>
+            <Transform translation='-100 -100 0'>
+              <Shape DEF='eqzBar'>
+                <Appearance USE='eqSelApp'></Appearance>
+                <Box size='50 50 200'></Box>
+              </Shape>
+            </Transform>
+            <Transform translation='100 -100 0'>
+              <Shape USE='eqzBar'></Shape>
+            </Transform>
+            <Transform translation='100 100 0'>
+              <Shape USE='eqzBar'></Shape>
+            </Transform>
+            <Transform translation='-100 100 0'>
+              <Shape USE='eqzBar'></Shape>
+            </Transform>
+          </Transform>
         </GeoLocation>
      
         <Group DEF='CFM5' onclick="showName(event)">
@@ -552,7 +604,7 @@
     eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-    const minMagnitude = isMobile ? 2 : 3.5;
+    const minMagnitude = isMobile ? 2 : 1.5;
     let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
@@ -784,10 +836,16 @@
           eqIndex = i;
         }
       });
-      let eqProperties = eqData.features[eqIndex].properties;
-      document.querySelector('#eqInfo').textContent = eqProperties.code+":"+eqProperties.title;
+
+      let eqFeature = eqData.features[eqIndex];
+      
+      let eqProperties = eqFeature.properties;
+      document.querySelector('#eqInfo').textContent = eqProperties.code+":" + eqProperties.title;
       document.querySelector('#eqInfo').href = eqProperties.url;
       
+      let eqCoordinates = eqFeature.geometry.coordinates;
+      document.querySelector('[DEF=eqSelection]').setAttribute('geoCoords', [eqCoordinates[1],eqCoordinates[0],eqCoordinates[2]*-1000].join());
+      document.querySelector('[DEF=eqSelTransform]').setAttribute('scale', [eqProperties.mag,eqProperties.mag,eqProperties.mag].join());
   }
 
    </script>
