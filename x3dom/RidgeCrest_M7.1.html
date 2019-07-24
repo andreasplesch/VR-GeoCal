@@ -604,7 +604,7 @@
     eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-    const minMagnitude = isMobile ? 2 : 3.5;
+    const minMagnitude = isMobile ? 2 : 1.5;
     let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
@@ -639,7 +639,7 @@
 //             let maxB=trafo.multMatrixPnt(
 //              new x3dom.fields.SFVec3f(w, l, h));
             
-            var r,x,y,z,d2r = Math.PI/180, smag=100*mag,
+            var r,x,y,z,d2r = Math.PI/180, smag=50*mag,
               m2degLat = 360/40000000, m2degLon = m2degLat/Math.cos(34*d2r),
               steps = isMobile ? 4 : 8;
             for (var lat=-90; lat<=90; lat += 360/steps) {
