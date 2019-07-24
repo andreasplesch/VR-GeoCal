@@ -570,7 +570,7 @@
   var eqData; // global to share
   function init() {
 
-    //loadTraces();
+    loadTraces();
     
     //attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
 
@@ -604,7 +604,7 @@
     eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-    const minMagnitude = isMobile ? 2 : 1.5;
+    const minMagnitude = isMobile ? 2 : 3.5;
     let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
@@ -737,16 +737,21 @@
 //       d3.json(traceUrl).then(loadGeojson, console.log)
 //         .then(appendToScene, console.log);
         var MillnerUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/New_faults4_Millner.geojson';
-        d3.json(MillnerUrl).then(loadGeojson, console.log)
-          .then(appendToScene, console.log);          
+//         d3.json(MillnerUrl).then(loadGeojson, console.log)
+//           .then(appendToScene, console.log);
+        var PontiUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/SurfaceRuptureMashupDPonti20190716.geojson';
+        d3.json(PontiUrl).then(loadGeojson, console.log)
+          .then(appendToScene, console.log);
+        
+                    
      
   }
   function loadGeojson(geojson) {
       var shape = document.createElement('Shape');
-      shape.setAttribute('DEF', geojson.name);
+      shape.setAttribute('DEF', geojson.name || 'geojson');
       var app = document.createElement('Appearance');
       var material = document.createElement('Material');
-      material.setAttribute('emissiveColor','1 1 0');
+      material.setAttribute('emissiveColor','0 1 1');
       var lineprop = document.createElement('LineProperties');
       lineprop.setAttribute('lineWidthScaleFactor','4');
       app.appendChild(material);
@@ -758,7 +763,9 @@
       shape.appendChild(ils);
       var point = "", coordIndex="", counter = 0;
       geojson.features.forEach(d => {
-          d.geometry.coordinates.forEach(xyz => {
+          let coords = d.geometry.coordinates;
+          if (Array.isArray(coords[0][0])) { coords = coords[0]; }
+          coords.forEach(xyz => {
               point += [xyz[1].toFixed(5), xyz[0].toFixed(5), (xyz[2] || 0).toFixed(1) ].join()+" ";
               coordIndex += counter++ + ' ';
           })
