@@ -58,7 +58,7 @@
           pointer-events: initial;
           color: yellow;
           font-weight: normal;
-
+          text-decoration-line: none;
       }
       #eqInfo:hover {
           font-weight: bold;
@@ -840,7 +840,7 @@
       let eqFeature = eqData.features[eqIndex];
       
       let eqProperties = eqFeature.properties;
-      document.querySelector('#eqInfo').textContent = eqProperties.code+":" + eqProperties.title;
+      document.querySelector('#eqInfo').textContent = eqProperties.code+": M " + eqProperties.mag+", at "+(new Date(eqProperties.time).toISOString());
       document.querySelector('#eqInfo').href = eqProperties.url;
       
       let eqCoordinates = eqFeature.geometry.coordinates;
