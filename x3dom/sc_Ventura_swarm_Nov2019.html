@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <title>CFM and the RidgeCrest M7.1 earthquake</title>
+    <link rel="stylesheet" type="text/css" href="https://x3dom.netlify.com/x3dom.css">
+    <script type="text/javascript" src="https://x3dom.netlify.com/x3dom-full.debug.js"></script>
+    <script src="//d3js.org/d3.v5.min.js"></script>
+    <style>
+      #x3dscene {
+        background-color: black;
+        width: 100%;
+        height:  100%;
+        position: fixed;
+        margin: 0;
+      }
+      #info {
+          position: absolute;
+          z-index: 100;
+          color: white;
+          font-family: monospace;
+          font-size: large;
+          opacity: 0.8;
+          width: 100%;
+          text-align: center;
+          pointer-events: none;
+      }
+      #help {
+          margin-left: auto;
+          background-color: #062c2c6e;
+          position: absolute;
+          z-index: 200;
+          color: #f3f3f385;
+          font-family: fantasy;
+          font-size: 1em;
+          /* opacity: 0.5; */
+          width: auto;
+          text-align: right;
+          padding: 10px;
+          right: 0px;
+      }
+      [id*=button] {
+          cursor: pointer;
+          margin: 2px;
+          border-style: outset;
+          padding: 6px;
+          text-align: center;
+      }
+      [id*=button]:hover {
+          background: #950000;
+          color: #ccc;
+          /* opacity: 1.0; */
+      }
+      #eqInfo {
+          pointer-events: initial;
+          color: yellow;
+          font-weight: normal;
+          text-decoration-line: none;
+      }
+      #eqInfo:hover {
+          font-weight: bold;
+      }
+      
+      body {
+          width:100%; height:100%; border:0; margin:0; padding:0;
+      }
+
+
+      </style>
+</head>
+<body onload='init()' >
+  
+<div id='info'>
+    <h2>The 2019 M6.4 and M7.1 Ridgecrest sequence</h2>
+    <div>
+        <span id='faultInfo'>Doubleclick to recenter</span>
+    </div>
+    <div><a id='eqInfo' target="_blank" href='http://earthquakes.usgs.gov'>Click on an earthquake</a></div>
+</div>
+<div id='help'>
+  <div id='mapbutton' onclick="setView('map')">Map</div>
+  <div id='northbutton' onclick="setView('toNorth')">North</div>
+  <div id='southbutton' onclick="setView('toSouth')">South</div>
+  <div id='eastbutton' onclick="setView('toEast')">East</div>
+  <div id='westbutton' onclick="setView('toWest')">West</div>
+</div>
+<div id="frame">
+<x3d id="x3dscene" primitiveQuality='Medium' onDownloadsfinished='tuneInlines(event)'>
+    <param name="showLog" value="false"></param>
+    <param name="showStat" value="false"></param>
+    <Scene onmousemove='showCoords(event)'>
+        <PointLight ambientIntensity='0.2' radius='20000000'></PointLight>
+        <GeoViewpoint position="35.76 -117.6 200000" orientation="1 0 0 -1.57" fieldOfView="0.3" centerofRotation="35.76 -117.6 -7000" description="map"></GeoViewpoint>
+        <GeoViewpoint position="34.76 -117.6 5000" orientation="1 0 0 0" centerofRotation="35.76 -117.6 -7000" description="toNorth"></GeoViewpoint>
+        <GeoViewpoint position="36.76 -117.6 5000" orientation="0 1 0 3.14" centerofRotation="35.76 -117.6 -7000" description="toSouth"></GeoViewpoint>
+        <GeoViewpoint position="35.76 -118.6 5000" orientation="0 1 0 -1.57" centerofRotation="35.76 -117.6 -7000" description="toEast"></GeoViewpoint>
+        <GeoViewpoint position="35.76 -116.6 5000" orientation="0 1 0 1.57" centerofRotation="35.76 -117.6 -7000" description="toWest"></GeoViewpoint>
+        
+        <inline url="cal_outline.x3d"></inline>
+        <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
+        <inline namespacename='cfm' url="CFM52/traces/CFM52_preferred_traces_all5.x3d"></inline>
+        <inline namespacename='mil' url="CFM52/traces/NewFaults4Millner.x3d"></inline>
+        
+        <GeoLocation DEF='cursor' geoCoords="36 -117 0">
+            <Transform >
+                <Shape>
+                  <Appearance DEF='cursorApp'>
+                      <Material diffuseColor='1 1 1'></Material>
+                  </Appearance>
+                  <Box size='5000 100 100'></Box>
+                </Shape>
+                <Shape>
+                  <Appearance USE='cursorApp'></Appearance>
+                  <Box size='100 5000 100'></Box>
+                </Shape>
+                <Shape>
+                  <Appearance USE='cursorApp'></Appearance>
+                  <Box size='100 100 5000'></Box>
+                </Shape>
+            </Transform>
+        </GeoLocation>
+        <GeoLocation DEF='eqSelection' geoCoords="36 -117 0">
+          <Transform DEF='eqSelTransform'>
+            <Transform DEF='eqSelX' translation='0 -100 -100'>
+              <Shape DEF='eqxBar'>
+                <Appearance DEF='eqSelApp'>
+                  <Material diffuseColor='1 1 0'></Material>
+                  <DepthMode depthFunc='ALWAYS'></DepthMode>
+                </Appearance>
+                <Box size='200 50 50'></Box>
+              </Shape>
+            </Transform>
+            <Transform translation='0 100 -100'>
+              <Shape USE='eqxBar'></Shape>
+            </Transform>
+            <Transform translation='0 100 100'>
+              <Shape USE='eqxBar'></Shape>
+            </Transform>
+            <Transform translation='0 -100 100'>
+              <Shape USE='eqxBar'></Shape>
+            </Transform>
+            <Transform translation='-100 0 -100'>
+              <Shape DEF='eqyBar'>
+                <Appearance USE='eqSelApp'></Appearance>
+                <Box size='50 200 50'></Box>
+              </Shape>
+            </Transform>
+            <Transform translation='100 0 -100'>
+              <Shape USE='eqyBar'></Shape>
+            </Transform>
+            <Transform translation='100 0 100'>
+              <Shape USE='eqyBar'></Shape>
+            </Transform>
+            <Transform translation='100 0 -100'>
+              <Shape USE='eqyBar'></Shape>
+            </Transform>
+            <Transform translation='-100 -100 0'>
+              <Shape DEF='eqzBar'>
+                <Appearance USE='eqSelApp'></Appearance>
+                <Box size='50 50 200'></Box>
+              </Shape>
+            </Transform>
+            <Transform translation='100 -100 0'>
+              <Shape USE='eqzBar'></Shape>
+            </Transform>
+            <Transform translation='100 100 0'>
+              <Shape USE='eqzBar'></Shape>
+            </Transform>
+            <Transform translation='-100 100 0'>
+              <Shape USE='eqzBar'></Shape>
+            </Transform>
+          </Transform>
+        </GeoLocation>
+     
+        <Group DEF='CFM5' onclick="showName(event)">
+      <!-- add fault inlines here -->
+
+<Inline namespacename="ns" url="CFM52/BNRA-BMFZ-MULT-Black_Mountain_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/BNRA-NDVZ-MULT-Northern_Death_Valley_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/BNRA-SDVZ-MULT-Southern_Death_Valley_fault_vertical-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-BPPM-EAST-Big_Pine_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-BPPM-LKWV-Lockwood_Valley_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-BPPM-PMTS-Pine_Mountain_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-BPPM-WEST-Big_Pine_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-CSBL-CSML-Casmalia_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-CSBL-LALM-Los_Alamos_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-CSBL-ORCT-Orcutt_blind_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-CSBL-PEZN-Pezzoni_Casmalia_fault_truncated-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-CSBL-ZACA-Zaca_blind_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-LMPZ-EAST-Lompoc_blind_ramp-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-LMPZ-WEST-Lompoc_blind_ramp-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-LNHZ-MULT-Lions_Head_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-LOSO-LSOS-Los_Osos_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-LPNZ-MULT-La_Panza_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-NAFZ-MULT-Nacimiento_fault_south-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-OCNZ-HSNV-West_Huasna_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-OCNZ-MULT-Oceanic_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-OCNZ-SLCN-Oceanic_backthrust_n-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-REHZ-EHSN-East_Huasna_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-REHZ-MULT-Rinconada_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SCFZ-SCYM-South_Cuyama_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SJMZ-CHMN-Big_Spring_fault_35dip-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SJMZ-MRLS-Morales_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SJMZ-MULT-San_Juan_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SLRS-LPNS-Little_Pine_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SLRS-MULT-San_Luis_Range_fault_system-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SLRS-SHRL-Shoreline_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SLRS-SLBS-San_Luis_Bay_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/CRFA-SLRS-SYNV-Santa_Ynez_Valley_blind_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-BBFS-1992_Big_Bear_rupture-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-BCFZ-MULT-Blue_Cut_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-CHRC-STWS-Smoketree_Wash_fault_vertical-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-CLGZ-NCHS-Grass_Valley_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-CLGZ-SBMT-Tunnel_Ridge_Arrastre_Canyon_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-CLGZ-SCHS-Cleghorn_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-LSBM-1992_Joshua_Tree_sequence-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-LSBM-LGCS-Long_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-LSBM-MULT-Burnt_Mountain_East_Wide_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-LSBM-MULT-Eureka_Peak_West_Deception_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-NFTS-DTMT-Deep_detachment-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-NFTS-EAST-North_Frontal_Thrust_fault_lowdip-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-NFTS-WEST-North_Frontal_Thrust_fault_lowdip-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-PMFZ-MRVS-Morongo_Valley_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-PMFZ-MULT-Pinto_Mountain_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-SANA-MULT-Santa_Ana_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/ETRA-SBMT-WEST-Waterman_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GRFS-GRFZ-EAST-Garlock_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GRFS-GRFZ-EAST-Owl_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GRFS-GRFZ-WEST-Garlock_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GVFA-KRCS-KRCN-Kern_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GVFA-KRCS-LISA-Lake_Isabella_lineament-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GVFA-PLFZ-MULT-Pleito_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GVFA-TDRS-COAL-Coalinga_blind_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GVFA-TDRS-KTLM-Kettleman_Hills_blind_fault_North_Dome-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GVFA-TDRS-LSTH-Lost_Hills_blind_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/GVFA-WWFZ-MULT-White_Wolf_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-BWFZ-MULT-Blackwater_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CHFZ-MULT-Calico_Hidalgo_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CHFZ-WCLS-West_Calico_FaultA_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CREC-CMPR-Camp_Rock_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CREC-CPMT-Copper_Mountain_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CREC-EMRS-Emerson_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CREC-EMRS-Galway_Lake_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CREC-EMRS-North_Emerson_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-BLBS-Bicycle_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-BLBS-Bitter_Springs_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-CADY-Cady_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-CYTL-Coyote_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-GNTM-Granite_Mountains_fault_west-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-GNTM-McLean_Lake_Drinkwater_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-GNTM-Nelson_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-MANX-Manix_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-CRSF-TFMT-Coyote_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-ECSZ-1992_Barstow_Trend-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-ECSZ-1992_Landers_cross_fault_North_I-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-ECSZ-1992_Landers_cross_fault_North_II-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-ECSZ-1992_Landers_rupture_detailed_splays-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-ECSZ-1999-Hector_Mine_rupture_dipping-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-GLPS-GLDS-Goldstone_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-GLPS-PRDS-Paradise_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HPFZ-GVHS-Gravel_Hills_fault_nw-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HPFZ-GVHS-Harper_Valley_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HPFZ-HPVS-Harper_Valley_Mt_General_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HPFZ-MULT-Gravel_Hills_Harper_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HSLZ-MULT-Helendale_South_Lockhart_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HSLZ-SBMT-Pipes_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HSLZ-SBMT-Pipes_Canyon_fault_north_extension-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-HSLZ-SBMT-Southern_Helendale_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-JVFZ-MULT-Johnson_Valley_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-JVFZ-SJVS-Kickapoo_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-JVHZ-HMSV-Homestead_Valley_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-LCLZ-CLGL-Cleghorn_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-LCLZ-LDLW-Ludlow_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-LLBM-MULT-Lavic_Lake_North_West_Bullion_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-LWLZ-MULT-Lenwood_Lockhart_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-NEMV-GRLS-Garlic_Spring_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-NEMV-RDPS-Red_Pass_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-PBMZ-EBLS-East_Bullion_Valley_Mountain_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-PBMZ-MSQL-Mesquite_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-PBMZ-MULT-Pisgah_Bullion_West_Bullion_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/MJVA-PBMZ-WBLS-West_Bullion_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-CBFZ-EAST-Coronado_Bank_east_splay-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-CBFZ-NCBF-Coronado_Bank_fault_north-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-CBFZ-SCBF-Coronado_Bank_fault_south-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-CBFZ-WEST-Coronado_Bank_west_splay-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-CBKD-MULT-Coronado_Bank_detachment_upper-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-CRSF-RDNC-Redondo_Canyon_fault-ZION-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-DSCS-EAST-Descanso_fault_east_splay-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-DSCS-MAIN-Descanso_fault-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-DSCS-NRTH-Descanso_fault_A-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-DSCS-NRTH-Descanso_fault_B-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-DSCS-NRTH-Descanso_fault_C-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-DSCS-RCNT-Descanso_RC_transfer_fault_alt1-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-DSCS-WEST-Descanso_fault_west_splay-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault_A-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault_B-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault_D-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault_E-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-ESCS-ESCB-East_Santa_Cruz_Basin_fault_main-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-FRFZ-SRRS-Ferrelo_fault_upper-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-IBFS-SCTI-Catalina_Island_detachment_upper_alt1-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-IBFS-SMBY-Santa_Monica_Bay_detachment_east-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-IBFS-SMBY-Santa_Monica_Bay_detachment_mid-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-IBFS-SMBY-Santa_Monica_Bay_detachment_west_regrid-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-IBFS-SMBY-Santa_Monica_Bay_fault_east-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-IBFS-SMBY-Santa_Monica_Bay_fault_west-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-NIRC-DANA-Newport_Inglewood_fault-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-NIRC-OCNS-Newport_Inglewood_Rose_Canyon_link-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-NIRC-RCSN-Rose_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-OCSD-OCNS-Oceanside_detachment_alt1-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-OCSD-OCNS-Oceanside_fault_north-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-OCSD-OCNS-Oceanside_fault_south_east_A-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-OCSD-OCNS-Oceanside_fault_south_east_B-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-OCSD-OCNS-Oceanside_fault_south_east_C-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-OCSD-OCNS-Oceanside_fault_south_west-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-PVFZ-MULT-Palos_Verdes_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SCCR-MULT-Santa_Cruz_Catalina_Ridge_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SCFZ-CTLB-San_Clemente_fault_splay-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SCFZ-SBRI-San_Clemente_fault_nw_strand-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SCFZ-SCBR-San_Clemente_fault-LEGG-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SCFZ-SCLI-San_Clemente_fault-LEGG-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SDTZ-30MB-San_Diego_Trough_fault-LEGG-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SDTZ-CTLB-San_Diego_Trough_fault-LEGG-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SMCS-MULT-San_Mateo_Carlsbad_fault-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SMCS-SMTO-San_Mateo_splay-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SMCS-SMTO-San_Onofre_fault_upper-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SPBZ-NTHS-San_Pedro_Basin_fault_north-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCBA-SPBZ-STHS-San_Pedro_Basin_fault_south-LEGG-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/OCCA-HSFZ-MULT-Hosgri_San_Simeon_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ATEV-MULT-Agua_Tibia_Earthquake_Valley_fault_east-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ATEV-MULT-Agua_Tibia_Earthquake_Valley_fault_main-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ATEV-MULT-Agua_Tibia_Earthquake_Valley_fault_west-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CEPS-BLDH-Compton-Los_Alamitos_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CEPS-LABS-Anaheim_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CEPS-PHLS-Lower_Elysian_Park_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-ALCM-Sawtooth_Range_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-CHNH-Yorba_Linda_lineament-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-CYMT-Devils_Canyon_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-EMCP-El_Mayor_Cucapah_normal_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-EMCP-El_Mayor_Cucapah_west_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-OCOT-Ocotillo_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-OCOT-Ocotillo_set1-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-OCOT-Ocotillo_set2-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-OCOT-Ocotillo_set3-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-OCOT-Ocotillo_set4-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-OCOT-Ocotillo_set5-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-PGWS-Painted_Gorge_Wash_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-USAV-Red_Hill_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Shell_Beds_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Yuha_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Yuha_Wash_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Yuha_Well_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Yuha_Well_fault_north_set1-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Yuha_Well_fault_northwest_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Yuha_Well_fault_west_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CRSF-YUHA-Yuha_Well_Vista_del_Anza_fault_truncated-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-CSTF-SJQH-San_Joaquin_Hills_fault_truncated-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-DVVZ-DVSV-Davies_Valley_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-DVVZ-NDVV-Northern_Davies_Valley_set1-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-CHNO-Chino_fault_Central_Ave-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-CHNO-Chino_fault_main-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-CYMT-Elsinore_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-GLIV-Glen_Ivy_North_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-GLIV-Glen_Ivy_South_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-INDV-Indiviso_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-INDV-Indiviso_fault_splay-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-JULN-Elsinore_fault_north-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-JULN-Elsinore_fault_south-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-JULN-Elsinore_fault_Wildomar_link-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_east_branch_dipping-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_east_branch_dipping_splay-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_north-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_south-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_west_branch_center-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_west_branch_deep_splay-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_west_branch_east-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-LGSD-Laguna_Salada_fault_west_branch_west-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-SRCP-Borrego_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-SRCP-Paso_Inferior_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-SRCP-Paso_Superior_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-SRCP-Pescadores_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-SRCP-Sierra_Cucapah_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-TMCL-Wildomar_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-TMCL-Willard_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-WHIT-East_Montebello_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-WHIT-Whittier_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-WHIT-Whittier_Heights_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-WHIT-Workman_Hill_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-YUHA-Sierra_Cucapah_fault_blind_north-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-ELSZ-YUHA-Sierra_Cucapah_fault_NW_splay-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-HSSF-AGCT-Agua_Caliente_fault_zone-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-HSSF-HOTS-Hot_Springs_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-HSSF-MRHS-Murrieta_Hotsprings_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-NBJD-CDVD-Canada_David_detachment-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-NBJD-SRCP-Cerro_Centinela_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-NIRC-LABS-Newport_Inglewood_fault_dip_w_splays_split-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-ANZA-Buck_Ridge_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-ANZA-Clark_fault_north-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-ANZA-Clark_fault_south_east-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-ANZA-Clark_fault_south_main-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-ANZA-Clark_fault_south_west-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-ANZA-Clark_fault_south_west_link-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-ANZA-Hot_Springs_Buck_Ridge_link-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-BRMT-Coyote_Creek_blind_fault_north_east-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-BRMT-Coyote_Creek_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-CYTC-Coyote_Creek_fault_center_east_splay-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-CYTC-Coyote_Creek_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-IMPV-Dixieland_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-IMPV-Weinert_El_Centro_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-IMPV-Weinert_Superstition_Hills_link-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SBRN-Glen_Helen_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SBRN-Loma_Linda_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SBRN-Lytle_Creek_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SBRN-Rialto_Colton_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SBRN-San_Jacinto_Claremont_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SJCV-Casa_Loma_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SJCV-Claremont_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SJCV-Hot_Springs_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SJCV-Hot_Springs_fault_west-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SJCV-San_Jacinto_Claremont_fault-east-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SSHS-Superstition_Hills_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SSMT-Superstition_Mountain_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/PNRA-SJFZ-SSMT-West_Mesa_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-MHFZ-LSBM-Berdoo_Canyon_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-MHFZ-LSBM-Indio_Hills_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-MHFZ-MCHS-Hidden_Springs_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-MHFZ-MCHS-Mecca_Hills_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-MHFZ-MCHS-Painted_Canyon_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-MHFZ-MULT-Mecca_Hills_Hidden_Springs_fault_deep-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-1812-San_Andreas_fault_rupture-LOZS-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-1857-San_Andreas_fault_rupture-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-BSZS-Southern_San_Andreas_blind_extension-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-CLCZ-San_Andreas_fault-CHLM-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-CLCZ-San_Andreas_fault-CRRZ-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-COAV-Banning_NPS_fault_splay-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-COAV-Mission_Creek_fault_strand-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-COAV-North_Palm_Springs_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-COAV-Southern_San_Andreas_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-MJVS-San_Andreas_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-MULT-Banning_fault_strand-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-MULT-Garnet_Hill_fault_strand-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-PARK-San_Andreas_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-SBMT-Mill_Creek_fault_strand-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-SBMT-Mission_Creek_fault_strand_steep-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SAFZ-SBMT-San_Andreas_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-CHFZ-Casa_Blanca_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-CHFZ-Chicken_Hill_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-CHFZ-Live_Oak_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-CHFZ-Redlands_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-CHFZ-Reservoir_Canyon_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-CHFZ-Western_Heights_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-DTMT-San_Gorgonio_Pass_deep_detachment-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-DTMT-San_Gorgonio_Pass_midcrust_detachment-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SBRN-Del_Rosa_cross_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SBRN-San_Bernardino_cross_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SGPS-San_Gorgonio_Pass_thrust-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SJMT-Palm_Springs_blind_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SJMT-Potatochip1_blind_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SJMT-Potatochip2_blind_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SJMT-Potatochip4_blind_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SAFS-SGPR-SJMT-Potatochip5_blind_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-BRSZ-BRSZ-Brawley_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-BRSZ-BRSZ-Brawley_Seismic_Zone_boundary-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-CPFZ-CRPR-Cierro_Prieto_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-CRSF-IMPV-Elmore_Ranch_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-CRSF-IMPV-Westmorland_fault_main-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-CRSF-IMPV-Westmorland_fault_splay-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-CRSF-SLTS-Extra_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-IMFZ-IMPV-Imperial_fault_east_strand_north-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-IMFZ-IMPV-Imperial_fault_east_strand_south-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-IMFZ-IMPV-Imperial_fault_Edip_Nend-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SALT-IMFZ-IMPV-Imperial_fault_north_end-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-AHTC-ASHH-Ash_Hill_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-AHTC-TANK-Tank_Canyon_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-ALFZ-COSO-Airport_Lake_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-HMFZ-MULT-Hunter_Mountain_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-LLFZ-CNTR-Little_Lake_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-LLFZ-EAST-Eastern_Little_Lake_fault_00-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-LLFZ-SOUT-Southern_Little_Lake_fault_00-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-OVFZ-1872-Owens_Valley_fault_rupture-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-PMVZ-MULT-Panamint_Valley_fault_steep-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-SSNZ-INDP-Independence_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/SNFA-SSNZ-MULT-Independence_Sierra_Nevada_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-MRFS-MULT-Mission_Ridge_Arroyo_Parida_fault_dip-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-NCPP-North_Channel_fault_east-SRLN-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-NCPP-North_Channel_fault_west_end-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-NCPP-North_Channel_fault_west-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-PPTV-Pitas_Point_fault_east-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-PPTV-Pitas_Point_fault_west-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-PPTV-Pitas_Point_fault_west_S-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-PPTV-Pitas_Point_Ventura_fault_link-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-RDMT-Red_Mountain_fault_N_strand-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-RDMT-Red_Mountain_fault_S_strand-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-RDMT-Red_Mountain_fault_SW_strand-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault_steep-JHAP-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-NCVS-VNTB-Ventura_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-ORFZ-MULT-Oak_Ridge_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-ORFZ-OFFS-Mid_Channel_fault-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-ORFZ-SFNV-Northridge_Frew_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-ORFZ-VNTB-Oak_Ridge_fault-MRSH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-COYT-Puente_Hills_Thrust_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-LABS-Las_Cienagas_fault_truncated-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-LABS-Puente_Hills_Thrust_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-LABS-San_Vicente_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-LABS-Upper_Elysian_Park_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-PRTH-Peralta_Hills_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-RICH-Puente_Hills_Thrust_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-PHTS-STFS-Puente_Hills_Thrust_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SBCF-MULT-Western_Deep_fault-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SBCF-WEST-Hondo_detachment_S_dip-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SBTS-ANCP-Anacapa_Dume_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SBTS-MULT-Channel_Islands_Thrust_fault-SHAW-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SCFZ-SCVA-Del_Valle_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SCFZ-SCVA-Holser_fault-CFM2.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SCFZ-TOPA-San_Cayetano_fault-HBRD-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-ANCP-Malibu_Coast_fault_west_steep_alt2-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-LABS-Hollywood_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-LABS-North_Salt_Lake_blind_fault-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-SGVS-Raymond_fault_extended-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-SMMT-Malibu_Coast_fault_east_steep_alt2-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-SNCZ-Santa_Cruz_Island_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFFS-SNRS-Santa_Rosa_Island_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFNS-MSNH-Mission_Hills_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFNS-SFNV-Northridge_Hills_fault_truncated-CFM3.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFNS-SFNV-San_Fernando_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFNS-VRDM-Eagle_Rock_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SFNS-VRDM-Verdugo_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGFZ-BTJG-San_Gabriel_fault_splay-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGFZ-MULT-Southern_San_Gabriel_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGFZ-PLMS-Northern_San_Gabriel_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGFZ-USGR-Weber_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGFZ-USGR-Weber_fault_NE_extension-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGMF-ICHC-Icehouse_Canyon_fault_truncated-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGMF-SANC-San_Antonio_Canyon_fault_splay_truncated-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGMF-SANC-San_Antonio_Canyon_fault_truncated-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGMF-STDC-South_Fork_Stoddard_Canyon_fault_truncated-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SGMF-STDC-Stoddard_Canyon_fault_truncated-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SMFZ-CCMG-Cucamonga_fault_low_dip-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SMFZ-CSPC-Clamshell_Sawpit_Canyon_fault-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SMFZ-MULT-Sierra_Madre_fault_west-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SMFZ-SMDD-Sierra_Madre_fault_low_dip-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SMFZ-SMDE-Sierra_Madre_Cucamonga_connector-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SMFZ-SMDE-Sierra_Madre_fault_low_dip-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SMFZ-SWCC-Sierra_Madre_fault_low_dip-CFM4.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SPJD-OFFS-Padre_Juan_fault_lower-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SPJD-OFFS-Padre_Juan_fault_upper-SRLN-CVMH-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SPJD-SPMT-Lion_Canyon_fault-HBRD-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SSFZ-MULT-Santa_Susana_fault-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SSRZ-MULT-Simi_Santa_Rosa_fault_listric-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SSRZ-OXNP-Bailey_fault_steep-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SYFZ-MULT-Santa_Ynez_fault_75dip-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-SYRZ-MULT-Santa_Ynez_River_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-USAV-INDH-Indian_Hill_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-USAV-SNJH-San_Jose_fault-CFM5.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-USAV-UPLD-Upland_fault_dipslip-CFM1.x3d"></Inline>
+<Inline namespacename="ns" url="CFM52/WTRA-USAV-WLNC-Walnut_Creek_fault-CFM5.x3d"></Inline>
+
+        </Group>
+    </Scene>
+</x3d>
+</div>
+  <script type="text/javascript">
+  var eqData; // global to share
+  function init() {
+
+    loadTraces();
+    
+    //attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
+
+    var isMobile = navigator.userAgent.includes("obi");
+
+    var eqGroup=document.createElement('Group');
+    eqGroup.setAttribute('DEF','M7.1-RidgecrestSequence');
+    eqGroup.setAttribute('onclick', 'queryRidgecrest(event)')
+    
+    var eqShape=document.createElement('Shape');
+    eqShape.setAttribute('DEF','hypo');
+    var eqApp=document.createElement('Appearance');
+    var eqMat=document.createElement('Material');
+    eqMat.setAttribute('diffuseColor','0 1 1');
+    eqMat.setAttribute('transparency','0.2');
+    
+    var eqDepthmode=document.createElement('DepthMode');
+    eqDepthmode.setAttribute('depthFunc','ALWAYS');
+
+    eqApp.appendChild(eqMat);
+    eqApp.appendChild(eqDepthmode);
+    
+    eqShape.appendChild(eqApp);
+    //eqGeo=document.createElement('Box');
+    var eqGeo=document.createElement('IndexedFaceSet');
+    eqGeo.setAttribute('solid','true');
+    eqGeo.setAttribute('colorPerVertex','false');
+    var eqGeoCoords=document.createElement('geoCoordinate');
+    eqGeo.appendChild(eqGeoCoords);
+    eqColor=document.createElement('Color');
+    eqGeo.appendChild(eqColor);
+    eqShape.appendChild(eqGeo);
+    const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
+    const minMagnitude = isMobile ? 2 : 1.5;
+    let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
+    EventsSourceUrl += '&minmagnitude=' + minMagnitude;
+    EventsSourceUrl += '&eventtype=earthquake&orderby=time';
+    //https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson
+    d3.json(EventsSourceUrl).then(function(data){
+        let counter = 0, index = 0, coordindex="", km2deg = 1/110, m2deg = km2deg/1000; point="", color="";
+        eqData = data;
+        data.features.forEach((d, i) => {
+            let c=d.geometry.coordinates;
+            if (c[0]<xmin || c[0]>xmax || c[1]<ymin || c[1]>ymax) return
+            document.querySelector('#faultInfo').textContent=data.features.length+" earthquakes, processed: " + ++counter;
+            //let geoLoc=document.createElement('GeoLocation');
+            //geoLoc.setAttribute('geoCoords',[c[1],c[0],-1000*c[2]].join());
+            //let t=document.createElement('Transform');
+            let mag=d.properties.mag;
+            //Length = 10^(-3.55+0.74*Mag)
+            //let length=Math.max(0.5, Math.pow(10,-3.22 + 0.69*mag));//*1000;
+            //let area=Math.max(1, Math.pow(10,-3.42 + 0.90*mag)*1000*1000);
+            //let area=(mag < 6.71 ? Math.pow(10, -3.98 + mag) : Math.pow(10, 0.75*(-3.07 + mag)));//*1000*1000;
+            //let rotation = new x3dom.fields.SFMatrix4f.rotationZ(azi);
+            //let translation = new x3dom.fields.SFMatrix4f.translation(new x3dom.fields.SFVec3f(c[0],c[1],-1000*c[2]));
+            //let trafo = translation;//mult.(rotation);
+            //let w=km2deg*widthkm, l=km2deg*length/2, h=1000*0.5*area/length;
+            let h = mag*100, l = km2deg * h/1000, w = l;
+            
+//             let minA=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(-w, -l, -h));
+//             let minB=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(w, -l, -h));
+//             let maxA=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(-w, l, h));
+//             let maxB=trafo.multMatrixPnt(
+//              new x3dom.fields.SFVec3f(w, l, h));
+            
+            var r,x,y,z,d2r = Math.PI/180, smag=50*mag,
+              m2degLat = 360/40000000, m2degLon = m2degLat/Math.cos(34*d2r),
+              steps = isMobile ? 4 : 8;
+            for (var lat=-90; lat<=90; lat += 360/steps) {
+              r = smag*Math.cos(lat*d2r);
+              z = smag*Math.sin(lat*d2r);
+              for (var lon=0; lon<360; lon += 360/steps) {
+                x = r*Math.cos(lon*d2r);
+                y = r*Math.sin(lon*d2r);
+                point += [y*m2degLat + c[1], x*m2degLon + c[0], z-c[2]*1000].join()+' ';
+                if (lat < 90) {
+                  if (lon < (360 - 360/steps)) {
+                    coordindex += [index++, index, index+steps, index+steps-1].join()+',-1 ';
+                  }
+                  else {
+                    coordindex += [index++, index-steps, index, index+steps-1].join()+',-1 ';
+                  } 
+                } 
+              }
+            }
+            index += steps;
+
+
+            //let scale=mag*mag*1000/2;
+            //t.setAttribute('scale', [0.5*length, 0.5*area/length, 200].join());
+            //t.setAttribute('rotation', '0 1 0 -0.83');
+            
+//             point += [minA.y, minA.x, minA.z].join()+" "; // 0
+//             point += [minA.y, minA.x, maxA.z].join()+" "; // 1
+//             point += [maxA.y, maxA.x, maxA.z].join()+" "; // 2
+//             point += [maxA.y, maxA.x, minA.z].join()+" "; // 3
+            
+//             point += [minB.y, minB.x, minB.z].join()+" "; // 4
+//             point += [maxB.y, maxB.x, minB.z].join()+" "; // 5
+//             point += [maxB.y, maxB.x, maxB.z].join()+" "; // 6
+//             point += [minB.y, minB.x, maxB.z].join()+" "; // 7
+            
+//             point += [minA.y, minA.x, minA.z].join()+" "; 0
+//             point += [maxA.y, maxA.x, minA.z].join()+" "; 3
+//             point += [maxB.y, maxB.x, minB.z].join()+" "; 5
+//             point += [minB.y, minB.x, minB.z].join()+" "; 4
+            
+//             point += [minA.y, minA.x, maxA.z].join()+" "; 1
+//             point += [minB.y, minB.x, maxB.z].join()+" "; 7
+//             point += [maxB.y, maxB.x, maxB.z].join()+" "; 6
+//             point += [maxA.y, maxA.x, maxA.z].join()+" "; 2
+            
+//             point += [minA.y, minA.x, minA.z].join()+" "; 0
+//             point += [minB.y, minB.x, minB.z].join()+" "; 4
+//             point += [minB.y, minB.x, maxB.z].join()+" "; 7
+//             point += [minA.y, minA.x, maxA.z].join()+" "; 1
+            
+//             point += [maxA.y, maxA.x, minA.z].join()+" "; 3
+//             point += [maxA.y, maxA.x, maxA.z].join()+" "; 2
+//             point += [maxB.y, maxB.x, maxB.z].join()+" "; 6
+//             point += [maxB.y, maxB.x, minB.z].join()+" "; 5
+            
+            const baseIndex = index;
+            
+//             coordindex += [index++, index++, index++, index++, -1].join()+" ";
+//             coordindex += [index++, index++, index++, index++, -1].join()+" ";
+
+//             coordindex += [0,3,5,4].map(i => baseIndex + i).join()+", -1 ";
+//             coordindex += [1,7,6,2].map(i => baseIndex + i).join()+", -1 ";
+//             coordindex += [0,4,7,1].map(i => baseIndex + i).join()+", -1 ";
+//             coordindex += [3,2,6,5].map(i => baseIndex + i).join()+", -1 ";
+
+            let colorC = mag/7.1;
+            let d3c = d3.cubehelix(30+(colorC*330), 1.9*(colorC), 0.8*colorC).rgb();
+            let sfcolor = [(d3c.r/255).toFixed(4), (d3c.g/255).toFixed(4), (d3c.b/255).toFixed(4)].join(' ');
+            
+//             color += (sfcolor+",").repeat(5)+sfcolor+' ';
+            color += (sfcolor+",").repeat(steps*steps/2-1)+sfcolor+' ';
+
+//             let s=document.createElement('Shape');
+//             s.setAttribute('USE', 'hypo');
+//             t.appendChild(i==0 ? eqShape : s);
+//             geoLoc.appendChild(t);
+//             eqGroup.appendChild(geoLoc);
+        })
+
+        eqGeoCoords.setAttribute('point', point);
+        eqColor.setAttribute('color', color);
+//             data.features.map(d => {let c=d.geometry.coordinates;return [c[1],c[0],-c[2]*1000]}).join()
+//         );
+        eqGeo.setAttribute('coordIndex', coordindex);
+        eqGroup.appendChild(eqShape);
+        document.querySelector('Scene').appendChild(eqGroup);
+        document.querySelector('#faultInfo').textContent=counter+" earthquakes displayed"; 
+    })
+  }
+  function loadTraces() {
+
+//       var traceUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/CFM52_preferred_traces_all5.geojson';
+      
+//       d3.json(traceUrl).then(loadGeojson, console.log)
+//         .then(appendToScene, console.log);
+        var MillnerUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/New_faults4_Millner.geojson';
+//         d3.json(MillnerUrl).then(loadGeojson, console.log)
+//           .then(appendToScene, console.log);
+        var PontiUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/CFM52/traces/SurfaceRuptureMashupDPonti20190716.geojson';
+        d3.json(PontiUrl).then(loadGeojson, console.log)
+          .then(appendToScene, console.log);
+        
+                    
+     
+  }
+  function loadGeojson(geojson) {
+      var shape = document.createElement('Shape');
+      shape.setAttribute('DEF', geojson.name || 'geojson');
+      var app = document.createElement('Appearance');
+      var material = document.createElement('Material');
+      material.setAttribute('emissiveColor','0 1 1');
+      var lineprop = document.createElement('LineProperties');
+      lineprop.setAttribute('lineWidthScaleFactor','4');
+      app.appendChild(material);
+      app.appendChild(lineprop);
+      var ils = document.createElement('IndexedLineSet');
+      var gc = document.createElement('geoCoordinate');
+      ils.appendChild(gc);
+      shape.appendChild(app);
+      shape.appendChild(ils);
+      var point = "", coordIndex="", counter = 0;
+      geojson.features.forEach(d => {
+          let coords = d.geometry.coordinates;
+          if (Array.isArray(coords[0][0])) { coords = coords[0]; }
+          coords.forEach(xyz => {
+              point += [xyz[1].toFixed(5), xyz[0].toFixed(5), (xyz[2] || 0).toFixed(1) ].join()+" ";
+              coordIndex += counter++ + ' ';
+          })
+          point += "\n";
+          coordIndex += "-1,\n";
+      })
+      gc.setAttribute('point', point);
+      ils.setAttribute('coordIndex', coordIndex);
+      return shape;
+  }
+  function appendToScene(child) {
+    document.querySelector('Scene').appendChild(child);
+    return;
+  }
+
+  function attachonclick(elements) {
+      elements.forEach(el => { el.setAttribute('onclick','showName(event)'); });
+  }
+  function showName(e) {
+      let name = e.target.getAttribute('DEF');
+      document.querySelector('#faultInfo').textContent=name;
+  }
+  function setView(description) {
+      let rt = document.querySelector('x3d').runtime;
+      let vp = rt.getActiveBindable('Geoviewpoint');
+      let target = document.querySelector("Geoviewpoint[description="+description+"]");
+      if (target == vp) rt.resetView();
+      else target.setAttribute('bind','true');
+  }
+  function tuneInlines(e) {
+      document.querySelectorAll('[namespacename="ns"]').forEach(inl =>
+      {
+          let ifs = inl.querySelector('IndexedFaceSet');
+          ifs.setAttribute('creaseAngle', "3.14");
+          let parent=ifs.parentElement;
+          parent.removeChild(ifs);
+          parent.appendChild(ifs);
+          let dcolor=[124/255, 161/255, 82/255];
+          let def = inl.querySelector('Shape').getAttribute('DEF');
+          if (def.includes("Little_Lake") || def.includes("Airport_Lake")) dcolor=[1,0,0];
+          inl.querySelector('Material').setAttribute('diffuseColor', dcolor.join());
+          inl.querySelector('Material').setAttribute('transparency', 0.3);
+          //inl.querySelector('Appearance').setAttribute('sortKey', 0);
+    
+      })      
+  }
+  function showCoords(event) {
+      let gc = x3dom.fields.MFVec3f.parse(event.hitPnt.toString());
+      let gd = x3dom.nodeTypes.GeoCoordinate.prototype.GCtoGD(['GC','WE'], gc)[0];
+      //var veNode = event.hitObject.querySelector('[yscale]'); // any child object with yscale attribute
+      //var ve = veNode ? 1.0 * veNode.yscale : 1.0 ;
+      let n = new x3dom.fields.SFVec3f(event.normalX, event.normalY, event.normalZ);
+      let dip = Math.acos(gc[0].normalize().dot(n)) * 180/Math.PI;
+      dip = dip > 90 ? 180 - dip : dip;
+      document.querySelector('#faultInfo').textContent = 
+ `${(-gd.x).toFixed(3)}°W ${gd.y.toFixed(3)}°N ${
+ gd.z >= 0 ? gd.z.toFixed(0).padStart(6, "0") : ("-"+ (-gd.z).toFixed(0).padStart(5,"0"))
+ }m dip: ${dip.toFixed(0).padStart(2,"0")}°`;
+      document.querySelector('[DEF="cursor"]').setAttribute('geoCoords', [gd.y, gd.x, gd.z].join());
+
+  }
+  function queryRidgecrest(event) {
+      let gc = x3dom.fields.MFVec3f.parse(event.hitPnt.toString());
+      let gd = x3dom.nodeTypes.GeoCoordinate.prototype.GCtoGD(['GC','WE'], gc)[0];
+      const degLat2m = 40000000/360, d2r = Math.PI/180, degLon2m = degLat2m/Math.cos(34*d2r); // rough conversion to cartesian
+      var hit = new x3dom.fields.SFVec3f(gd.x*degLon2m, gd.y*degLat2m, gd.z);
+      var cPoint = new x3dom.fields.SFVec3f();
+      var dmin = 1e99, dist, eqIndex;
+      eqData.features.forEach( (d,i) => {
+        let c=d.geometry.coordinates;
+        cPoint.set(c[0]*degLon2m, c[1]*degLat2m, c[2]*-1000);
+        dist = cPoint.subtract(hit).length();
+        if ((dist < dmin)) {
+          dmin = dist;
+          eqIndex = i;
+        }
+      });
+
+      let eqFeature = eqData.features[eqIndex];
+      
+      let eqProperties = eqFeature.properties;
+      document.querySelector('#eqInfo').textContent = eqProperties.code+": M " + eqProperties.mag+", at "+(new Date(eqProperties.time).toISOString());
+      document.querySelector('#eqInfo').href = eqProperties.url;
+      
+      let eqCoordinates = eqFeature.geometry.coordinates;
+      document.querySelector('[DEF=eqSelection]').setAttribute('geoCoords', [eqCoordinates[1],eqCoordinates[0],eqCoordinates[2]*-1000].join());
+      document.querySelector('[DEF=eqSelTransform]').setAttribute('scale', [eqProperties.mag,eqProperties.mag,eqProperties.mag].join());
+  }
+
+   </script>
+  </body>
+</html>
