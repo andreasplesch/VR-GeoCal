@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <title>CFM and the RidgeCrest M7.1 earthquake</title>
+    <title>CFM and the Ventura M3.5 swarm</title>
     <link rel="stylesheet" type="text/css" href="https://x3dom.netlify.com/x3dom.css">
     <script type="text/javascript" src="https://x3dom.netlify.com/x3dom-full.debug.js"></script>
     <script src="//d3js.org/d3.v5.min.js"></script>
@@ -74,7 +74,7 @@
 <body onload='init()' >
   
 <div id='info'>
-    <h2>The 2019 M6.4 and M7.1 Ridgecrest sequence</h2>
+    <h2>The 2019 M3.4 Ventura swarm</h2>
     <div>
         <span id='faultInfo'>Doubleclick to recenter</span>
     </div>
@@ -93,16 +93,16 @@
     <param name="showStat" value="false"></param>
     <Scene onmousemove='showCoords(event)'>
         <PointLight ambientIntensity='0.2' radius='20000000'></PointLight>
-        <GeoViewpoint position="35.76 -117.6 200000" orientation="1 0 0 -1.57" fieldOfView="0.3" centerofRotation="35.76 -117.6 -7000" description="map"></GeoViewpoint>
-        <GeoViewpoint position="34.76 -117.6 5000" orientation="1 0 0 0" centerofRotation="35.76 -117.6 -7000" description="toNorth"></GeoViewpoint>
-        <GeoViewpoint position="36.76 -117.6 5000" orientation="0 1 0 3.14" centerofRotation="35.76 -117.6 -7000" description="toSouth"></GeoViewpoint>
-        <GeoViewpoint position="35.76 -118.6 5000" orientation="0 1 0 -1.57" centerofRotation="35.76 -117.6 -7000" description="toEast"></GeoViewpoint>
-        <GeoViewpoint position="35.76 -116.6 5000" orientation="0 1 0 1.57" centerofRotation="35.76 -117.6 -7000" description="toWest"></GeoViewpoint>
+        <GeoViewpoint position="34.3 -119.3 20000" orientation="1 0 0 -1.57" fieldOfView="0.3" centerofRotation="34.3 -119.3 -6000" description="map"></GeoViewpoint>
+        <GeoViewpoint position="34.1 -119.3 000" orientation="1 0 0 0" centerofRotation="34.3 -119.3 -6000" description="toNorth"></GeoViewpoint>
+        <GeoViewpoint position="34.5 -119.3 000" orientation="0 1 0 3.14" centerofRotation="34.3 -119.3 -6000" description="toSouth"></GeoViewpoint>
+        <GeoViewpoint position="34.3 -119.6 000" orientation="0 1 0 -1.57" centerofRotation="34.3 -119.3 -6000" description="toEast"></GeoViewpoint>
+        <GeoViewpoint position="34.3 -119.0 000" orientation="0 1 0 1.57" centerofRotation="34.3 -119.3 -6000" description="toWest"></GeoViewpoint>
         
         <inline url="cal_outline.x3d"></inline>
         <inline url="QuaternaryFaults_CA_utm11nad27_scal2.x3d"></inline>
         <inline namespacename='cfm' url="CFM52/traces/CFM52_preferred_traces_all5.x3d"></inline>
-        <inline namespacename='mil' url="CFM52/traces/NewFaults4Millner.x3d"></inline>
+        <!--inline namespacename='mil' url="CFM52/traces/NewFaults4Millner.x3d"></inline-->
         
         <GeoLocation DEF='cursor' geoCoords="36 -117 0">
             <Transform >
@@ -572,7 +572,7 @@
 
     //loadTraces();
     
-    //attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
+    attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
 
     var isMobile = navigator.userAgent.includes("obi");
 
@@ -610,7 +610,7 @@
 //     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
 //     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
     //https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson
-    let let EventsSourceUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/sc_ventura_1.dloc_a_dd.geojson';
+    let EventsSourceUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/sc_ventura_1.dloc_a_dd.geojson';
     d3.json(EventsSourceUrl).then(function(data){
         let counter = 0, index = 0, coordindex="", km2deg = 1/110, m2deg = km2deg/1000; point="", color="";
         eqData = data;
@@ -650,7 +650,7 @@
               for (var lon=0; lon<360; lon += 360/steps) {
                 x = r*Math.cos(lon*d2r);
                 y = r*Math.sin(lon*d2r);
-                point += [y*m2degLat + c[1], x*m2degLon + c[0], z-c[2]*1000].join()+' ';
+                point += [y*m2degLat + c[1], x*m2degLon + c[0], z+c[2]*1.000].join()+' ';
                 if (lat < 90) {
                   if (lon < (360 - 360/steps)) {
                     coordindex += [index++, index, index+steps, index+steps-1].join()+',-1 ';
@@ -784,6 +784,7 @@
   function attachonclick(elements) {
       elements.forEach(el => { el.setAttribute('onclick','showName(event)'); });
   }
+  
   function showName(e) {
       let name = e.target.getAttribute('DEF');
       document.querySelector('#faultInfo').textContent=name;
