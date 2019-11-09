@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <title>CFM and the Ventura M3.5 swarm</title>
+    <title>CFM and the Ventura M3.4 swarm</title>
     <link rel="stylesheet" type="text/css" href="https://x3dom.netlify.com/x3dom.css">
     <script type="text/javascript" src="https://x3dom.netlify.com/x3dom-full.debug.js"></script>
     <script src="//d3js.org/d3.v5.min.js"></script>
@@ -839,7 +839,7 @@
       var dmin = 1e99, dist, eqIndex;
       eqData.features.forEach( (d,i) => {
         let c=d.geometry.coordinates;
-        cPoint.set(c[0]*degLon2m, c[1]*degLat2m, c[2]*-1000);
+        cPoint.set(c[0]*degLon2m, c[1]*degLat2m, c[2]*1.000);
         dist = cPoint.subtract(hit).length();
         if ((dist < dmin)) {
           dmin = dist;
@@ -850,11 +850,11 @@
       let eqFeature = eqData.features[eqIndex];
       
       let eqProperties = eqFeature.properties;
-      document.querySelector('#eqInfo').textContent = eqProperties.code+": M " + eqProperties.mag+", at "+(new Date(eqProperties.time).toISOString());
+      document.querySelector('#eqInfo').textContent = eqProperties.code+": M " + eqProperties.mag+", at "+(new Date(eqProperties.begin).toISOString());
       document.querySelector('#eqInfo').href = eqProperties.url;
       
       let eqCoordinates = eqFeature.geometry.coordinates;
-      document.querySelector('[DEF=eqSelection]').setAttribute('geoCoords', [eqCoordinates[1],eqCoordinates[0],eqCoordinates[2]*-1000].join());
+      document.querySelector('[DEF=eqSelection]').setAttribute('geoCoords', [eqCoordinates[1],eqCoordinates[0],eqCoordinates[2]*1.000].join());
       document.querySelector('[DEF=eqSelTransform]').setAttribute('scale', [eqProperties.mag,eqProperties.mag,eqProperties.mag].join());
   }
 
