@@ -570,15 +570,15 @@
   var eqData; // global to share
   function init() {
 
-    loadTraces();
+    //loadTraces();
     
     //attachonclick(document.querySelectorAll('inline[url*=CFM5]'));
 
     var isMobile = navigator.userAgent.includes("obi");
 
     var eqGroup=document.createElement('Group');
-    eqGroup.setAttribute('DEF','M7.1-RidgecrestSequence');
-    eqGroup.setAttribute('onclick', 'queryRidgecrest(event)')
+    eqGroup.setAttribute('DEF','M3.5-VenturaSwarm');
+    eqGroup.setAttribute('onclick', 'queryVentura(event)')
     
     var eqShape=document.createElement('Shape');
     eqShape.setAttribute('DEF','hypo');
@@ -603,12 +603,14 @@
     eqColor=document.createElement('Color');
     eqGeo.appendChild(eqColor);
     eqShape.appendChild(eqGeo);
+      
     const xmin = -130, xmax = -100, ymin = 20, ymax = 50, widthkm = 0.2, azi = -130*3.14/180;
-    const minMagnitude = isMobile ? 2 : 1.5;
-    let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
-    EventsSourceUrl += '&minmagnitude=' + minMagnitude;
-    EventsSourceUrl += '&eventtype=earthquake&orderby=time';
+    const minMagnitude = isMobile ? 0 : -1.5, magMax = 4;
+//     let EventsSourceUrl = 'https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime=2019-07-04%2000:00:00&maxlatitude=36.602&minlatitude=35.096&maxlongitude=-116.719&minlongitude=-118.438'; 
+//     EventsSourceUrl += '&minmagnitude=' + minMagnitude;
+//     EventsSourceUrl += '&eventtype=earthquake&orderby=time';
     //https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/queryUSGS070719_8amEDT.geojson
+    let let EventsSourceUrl = 'https://raw.githubusercontent.com/andreasplesch/VR-GeoCal/master/x3dom/earthquakes/sc_ventura_1.dloc_a_dd.geojson';
     d3.json(EventsSourceUrl).then(function(data){
         let counter = 0, index = 0, coordindex="", km2deg = 1/110, m2deg = km2deg/1000; point="", color="";
         eqData = data;
@@ -706,7 +708,7 @@
 //             coordindex += [0,4,7,1].map(i => baseIndex + i).join()+", -1 ";
 //             coordindex += [3,2,6,5].map(i => baseIndex + i).join()+", -1 ";
 
-            let colorC = mag/7.1;
+            let colorC = mag/magMax;
             let d3c = d3.cubehelix(30+(colorC*330), 1.9*(colorC), 0.8*colorC).rgb();
             let sfcolor = [(d3c.r/255).toFixed(4), (d3c.g/255).toFixed(4), (d3c.b/255).toFixed(4)].join(' ');
             
@@ -743,8 +745,6 @@
         d3.json(PontiUrl).then(loadGeojson, console.log)
           .then(appendToScene, console.log);
         
-                    
-     
   }
   function loadGeojson(geojson) {
       var shape = document.createElement('Shape');
@@ -812,6 +812,7 @@
     
       })      
   }
+      
   function showCoords(event) {
       let gc = x3dom.fields.MFVec3f.parse(event.hitPnt.toString());
       let gd = x3dom.nodeTypes.GeoCoordinate.prototype.GCtoGD(['GC','WE'], gc)[0];
@@ -827,7 +828,8 @@
       document.querySelector('[DEF="cursor"]').setAttribute('geoCoords', [gd.y, gd.x, gd.z].join());
 
   }
-  function queryRidgecrest(event) {
+      
+  function queryVentura(event) {
       let gc = x3dom.fields.MFVec3f.parse(event.hitPnt.toString());
       let gd = x3dom.nodeTypes.GeoCoordinate.prototype.GCtoGD(['GC','WE'], gc)[0];
       const degLat2m = 40000000/360, d2r = Math.PI/180, degLon2m = degLat2m/Math.cos(34*d2r); // rough conversion to cartesian
